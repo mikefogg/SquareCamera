@@ -101,7 +101,7 @@
             [image release];
             [croppedImage release];
             
-            // [self.captureSession stopRunning];
+            [self.captureSession stopRunning];
      }];
 }
 
@@ -115,7 +115,6 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
 -(UIView*)square
 {   
     if (square == nil) {
-        NSLog(@"[INFO] ---- SQUARE LOADED ----");
         
         square = [[UIView alloc] initWithFrame:[self frame]];
         [self addSubview:square]; 
@@ -123,8 +122,6 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         self.stillImage = [[UIImageView alloc] init];
         self.stillImage.frame = [square bounds];
         [self addSubview:self.stillImage];
-        
-        NSLog(@"[INFO]: Still Image Frame = %@", NSStringFromCGRect(self.stillImage.frame));
         
         /////////////////////////////////////////////////////////////////////////////
         // Create a preview layer that has a capture session attached to it.
@@ -146,6 +143,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         if (!input) {
             // Handle the error appropriately.
             NSLog(@"ERROR: trying to open camera: %@", error);
+            [self.proxy fireEvent:@"error" withObject:error];
         }
         [self.captureSession addInput:input];
 
