@@ -35,10 +35,7 @@
  @brief	The UIImageView we use to display the image generated from the imageBuffer
  */
 @property (nonatomic, strong) UIImageView *imageView;
-/*!
- @brief	The CALayer we use to display the CGImageRef generated from the imageBuffer
- */
-@property (nonatomic, strong) CALayer *customLayer;
+
 /*!
  @brief	The CALAyer customized by apple to display the video corresponding to a capture session
  */
