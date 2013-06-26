@@ -26,38 +26,19 @@
     UIView *square;
 }
 
-/*!
- @brief	The capture session takes the input from the camera and capture it
- */
 @property (nonatomic, strong) AVCaptureSession *captureSession;
 
-/*!
- @brief	The UIImageView we use to display the image generated from the imageBuffer
- */
-@property (nonatomic, strong) UIImageView *imageView;
-/*!
- @brief	The CALayer we use to display the CGImageRef generated from the imageBuffer
- */
-@property (nonatomic, strong) CALayer *customLayer;
-/*!
- @brief	The CALAyer customized by apple to display the video corresponding to a capture session
- */
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *prevLayer;
 
-/*!
- @brief	The capture session takes the input from the camera and capture it
- */
 @property(nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
 
-/*!
- @brief	The capture session takes the input from the camera and capture it
- */
 @property(nonatomic, retain) UIImageView *stillImage;
 
-/*!
- @brief	This method initializes the capture session
- */
-//- (void)setupCapture;
+@property(nonatomic, retain) AVCaptureDevice *captureDevice;
+
+@property(nonatomic) Boolean flashOn;
+
+@property(nonatomic) Boolean isUsingFrontFacingCamera;
 
 @end
 
