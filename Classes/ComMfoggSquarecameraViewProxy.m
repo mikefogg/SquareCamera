@@ -15,4 +15,19 @@
 	[[self view] performSelectorOnMainThread:@selector(takePhoto:) withObject:args waitUntilDone:NO];
 }
 
+-(void)turnFlashOn:(id)args
+{
+	[[self view] performSelectorOnMainThread:@selector(turnFlashOn:) withObject:args waitUntilDone:NO];
+}
+
+-(void)turnFlashOff:(id)args
+{
+	[[self view] performSelectorOnMainThread:@selector(turnFlashOff:) withObject:args waitUntilDone:NO];
+}
+
+-(void)switchCamera:(id)args
+{
+	[[self view] performSelectorOnMainThread:@selector(switchCamera:) withObject:args waitUntilDone:NO];
+}
+
 @end

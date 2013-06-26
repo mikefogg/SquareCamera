@@ -20,7 +20,7 @@
 // this is generated for your module, please do not change it
 -(NSString*)moduleId
 {
-	return @"test.module";
+	return @"com.mfogg.squarecamera";
 }
 
 #pragma mark Lifecycle
@@ -81,18 +81,5 @@
 		// since no body is listening at this point for that event
 	}
 }
-
-#pragma Public APIs
-
-//-(id)exampleProp
-//{
-//	// example property getter
-//	return @"hello world";
-//}
-//
-//-(void)setExampleProp:(id)value
-//{
-//	// example property setter
-//}
 
 @end
