@@ -3,7 +3,7 @@
 * 
 * Original Author : Mike Fogg : github.com/blirpit : June 2013
 * 
-* Modification and 'fixit attempts' : Kosso : August 2013 
+* Modification and 'fixit attempts' : Kosso : August 2013  
 * 
 */ 
 
