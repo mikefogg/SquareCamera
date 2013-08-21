@@ -30,12 +30,16 @@
     dispatch_queue_t videoDataOutputQueue;
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
 @property (nonatomic, strong) AVCaptureSession *captureSession;
 
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *prevLayer;
 
+<<<<<<< HEAD
 @property (nonatomic, assign) AVCaptureVideoOrientation *orientation;
 
 @property (nonatomic,retain) AVCaptureDeviceInput *videoInput;
@@ -48,14 +52,21 @@
 
 
 
+=======
+@property(nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
+
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
 @property(nonatomic, retain) UIImageView *stillImage;
 
 @property(nonatomic, retain) AVCaptureDevice *captureDevice;
 
+<<<<<<< HEAD
 
  
 
 
+=======
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
 @property(nonatomic) Boolean flashOn;
 
 @property(nonatomic) Boolean isUsingFrontFacingCamera;
