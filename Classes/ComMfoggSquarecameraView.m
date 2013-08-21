@@ -19,6 +19,7 @@
 @synthesize captureDevice = _captureDevice;
 @synthesize flashOn = _flashOn;
 @synthesize isUsingFrontFacingCamera = _isUsingFrontFacingCamera;
+<<<<<<< HEAD
 
   /// used for KVO observation of the @"capturingStillImage" property to perform flash bulb animation
 static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCaptureStillImageIsCapturingStillImageContext";
@@ -28,6 +29,13 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 {
     [self teardownAVCapture];
 
+=======
+
+- (void) dealloc
+{
+    [self.captureSession stopRunning];
+    
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
     self.prevLayer = nil;
     self.stillImage = nil;
     self.stillImageOutput = nil;
@@ -51,7 +59,10 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+<<<<<<< HEAD
     // This is initializing the square view
+=======
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
     [TiUtils setView:self.square positionRect:bounds];
 }
 
@@ -77,6 +88,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     };
 };
 
+<<<<<<< HEAD
 // utility routine to display error aleart if takePicture fails
 - (void)displayErrorOnMainQueue:(NSError *)error withMessage:(NSString *)message
 {
@@ -97,6 +109,11 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     NSLog(@"[INFO] takePhoto ... ");
 
     AVCaptureConnection *stillImageConnection = nil;
+=======
+- (void)takePhoto:(id)args
+{
+    AVCaptureConnection *videoConnection = nil;
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
         
 	for (AVCaptureConnection *connection in self.stillImageOutput.connections)
 	{
@@ -111,7 +128,11 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		if (stillImageConnection) { break; }
 	}
     
+<<<<<<< HEAD
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error)
+=======
+    [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:videoConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error)
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
         { 
 
             // Not using these yet, but interesting nonetheless.
@@ -160,6 +181,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
             TiBlob *imageBlob = [[TiBlob alloc] initWithImage:croppedImage]; // maybe try image here 
             NSDictionary *event = [NSDictionary dictionaryWithObject:imageBlob forKey:@"media"];
             
+<<<<<<< HEAD
             // HURRAH! 
             [self.proxy fireEvent:@"success" withObject:event];
 
@@ -167,6 +189,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
            // [imageBlob release];
            // [image release];
            // [croppedImage release];
+=======
+            [self.proxy fireEvent:@"onTakePhoto"];
+                        
+            [image release];
+            [croppedImage release];
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
             
             // keep it running for now - since we didn't replace it with an image
             // [self.captureSession stopRunning];
@@ -231,6 +259,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         self.stillImage = [[UIImageView alloc] init];
         self.stillImage.frame = [square bounds];
         [self addSubview:self.stillImage];
+<<<<<<< HEAD
 
 
         
@@ -395,6 +424,41 @@ bail:
             }
             [self.captureSession addInput:input];
 
+=======
+        
+        if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+            // If camera is avaialble
+        
+        
+            /////////////////////////////////////////////////////////////////////////////
+            // Create a preview layer that has a capture session attached to it.
+            // Stick this preview layer into our UIView.
+            /////////////////////////////////////////////////////////////////////////////
+            self.captureSession = [[AVCaptureSession alloc] init];
+            self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;
+                    
+            self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
+            self.prevLayer.frame = square.bounds;
+            //self.prevLayer.transform = CATransform3DRotate(CATransform3DIdentity, M_PI/2.0f, 0, 0, 1);
+            self.prevLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            [square.layer addSublayer:self.prevLayer];
+            
+            self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+            
+            if([self.captureDevice lockForConfiguration:true]){
+                [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
+                self.flashOn = NO;  
+                [self.captureDevice lockForConfiguration:false];
+            };
+            
+            NSError *error = nil;
+            AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureDevice error:&error];
+            if (!input) {
+                // Handle the error appropriately.
+            }
+            [self.captureSession addInput:input];
+
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
             
             /////////////////////////////////////////////////////////////
             // OUTPUT #1: Still Image
@@ -402,7 +466,10 @@ bail:
             // Add an output object to our session so we can get a still image
             // We retain a handle to the still image output and use this when we capture an image.
             self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
             NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys: AVVideoCodecJPEG, AVVideoCodecKey, nil];
             [self.stillImageOutput setOutputSettings:outputSettings];
             [self.captureSession addOutput:self.stillImageOutput];
@@ -412,6 +479,7 @@ bail:
             // OUTPUT #2: Video Frames
             /////////////////////////////////////////////////////////////
             // Create Video Frame Outlet that will send each frame to our delegate
+<<<<<<< HEAD
             AVCaptureVideoDataOutput *captureOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
             captureOutput.alwaysDiscardsLateVideoFrames = YES; 
             
@@ -423,6 +491,15 @@ bail:
             // a warning is happening here for some reason...  
             [captureOutput setSampleBufferDelegate:self queue:queue];
 
+=======
+            AVCaptureVideoDataOutput *captureOutput = [[AVCaptureVideoDataOutput alloc] init];
+            captureOutput.alwaysDiscardsLateVideoFrames = YES; 
+            
+            // We need to create a queue to funnel the frames to our delegate
+            dispatch_queue_t queue;
+            queue = dispatch_queue_create("cameraQueue", NULL);
+            [captureOutput setSampleBufferDelegate:self queue:queue];
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
             dispatch_release(queue);
             
             // Set the video output to store frame in BGRA (It is supposed to be faster)
@@ -439,9 +516,12 @@ bail:
             
             // start the capture session
             [self.captureSession startRunning];
+<<<<<<< HEAD
 
 
             */
+=======
+>>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
             
         } else {
             // If camera is NOT avaialble
