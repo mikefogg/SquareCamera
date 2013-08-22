@@ -58,10 +58,9 @@ cameraView.addEventListener("success", function(e){
 
 	image_preview.image = e.media;
 
-	// Let's see if the orientation is right - among other things.. 
+	// Let's save it .. 
 	Ti.Media.saveToPhotoGallery(e.media);
-	//
-	// hmmm only coming out 300 x 300  
+
 
 	//alert("Picture Taken");
 
