@@ -2,10 +2,10 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 0.1
+version: 0.2
 apiversion: 2
-description: My module
-author: Mike Fogg
+description: SquareCamera - Titanium Module using AVFoundation for the camera
+author: Mike Fogg - Modifications - Kosso
 license: Specify your license
 copyright: Copyright (c) 2013 by Your Company
 

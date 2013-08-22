@@ -114,7 +114,14 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		}
 		if (stillImageConnection) { break; }
 	}
+
+    UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
+    //AVCaptureVideoOrientation avcaptureOrientation = [self avOrientationForDeviceOrientation:curDeviceOrientation];
+    //[stillImageConnection setVideoOrientation:avcaptureOrientation];
     
+    // [stillImageConnection setVideoScaleAndCropFactor:effectiveScale]; // leftover from 'pinchzoom' in iOSDL demo? 
+  
+
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error)
         { 
 
@@ -133,8 +140,32 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
             UIImage *image = [[UIImage alloc] initWithData:imageData];
             
-            CGSize size = image.size;  
-            CGRect cropRect = self.stillImage.frame;  
+            CGSize size = image.size;  // this will be the full size of the screen 
+
+            NSLog(@"image.size : %@", NSStringFromCGSize(size));
+
+            CGFloat image_width = image.size.width;
+            CGFloat image_height = image.size.height;
+
+            CGFloat image_square_wh = image_width;
+            if(image_height < image_width){
+                image_square_wh = image_height;
+            }
+            // Let's try this... make the crop from the image size dimensions, not the UIView square
+            CGRect cropRect = CGRectMake(
+                    0,
+                    0,
+                    image_square_wh,
+                    image_square_wh
+                );
+
+            //CGRect cropRect = self.stillImage.frame; // this is only 300 x 300 (the size of the square)
+            
+
+
+            NSLog(@"cropRect : %@", NSStringFromCGRect(cropRect));
+
+
             CGRect customImageRect = CGRectMake(
                                                 -((((cropRect.size.width/size.width)*size.height)-cropRect.size.height)/2),
                                                 0,
@@ -148,7 +179,10 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
             CGContextRotateCTM(context, -M_PI/2);  
             
             if(self.isUsingFrontFacingCamera){
-                CGContextScaleCTM(context, 1.0, -1.0);
+
+                NSLog(@"[INFO] FRONT CAMERA!");
+
+               // CGContextScaleCTM(context, 1.0, -1.0);
             }
             
             CGContextDrawImage(context, customImageRect,
@@ -185,11 +219,21 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 -(void)switchCamera:(id)args
 {
     AVCaptureDevicePosition desiredPosition;
-    if (self.isUsingFrontFacingCamera)
-    desiredPosition = AVCaptureDevicePositionBack;
-    else
-    desiredPosition = AVCaptureDevicePositionFront;
+    if (self.isUsingFrontFacingCamera){
+         desiredPosition = AVCaptureDevicePositionBack;
+            
+            if( &AVCaptureSessionPreset1920x1080 != NULL && [self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES )
+            {
+                self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
+                //self.currentPreset = GMCVideoCaptureRecordingPresetFullHD;
+            } else {
+                self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+            }
 
+    } else {
+        desiredPosition = AVCaptureDevicePositionFront;
+        self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+    }
     for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
         if ([d position] == desiredPosition) {
             [[self.prevLayer session] beginConfiguration];
@@ -212,6 +256,8 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
 	   fromConnection:(AVCaptureConnection *)connection 
 { 
     /*
+    // ? UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
+
     // from https://developer.apple.com/library/ios/qa/qa1702/_index.html
     // Create a UIImage from the sample buffer data
     UIImage *image = [self imageFromSampleBuffer:sampleBuffer];
@@ -241,15 +287,19 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
             // If camera is avaialble
         
-            
-             
-            // is this even needed? 
-            //CALayer *viewLayer = self.square.layer;
-            //NSLog(@"viewLayer = %@", viewLayer);
-  
+
 
             self.captureSession = [[AVCaptureSession alloc] init];
-            self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;
+
+            // Go for higher resolution
+            if( &AVCaptureSessionPreset1920x1080 != NULL && [self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES )
+            {
+                self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
+                //self.currentPreset = GMCVideoCaptureRecordingPresetFullHD;
+            } else {
+                self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+            }
+
  
 
             self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
@@ -259,7 +309,14 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
             
 
             self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+
+            if([self.captureDevice lockForConfiguration:true]){
+                [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
+                self.flashOn = NO;  
+                [self.captureDevice lockForConfiguration:false];
+            };
             
+
             NSError *error = nil;
             AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureDevice error:&error];
             if (!input) {
@@ -270,10 +327,9 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
             AVCaptureVideoDataOutput *videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
             [videoDataOutput setAlwaysDiscardsLateVideoFrames:YES]; // discard if the data output queue is blocked (as we process the still image)
 
-
+            // Now do the dispatch queue .. 
             videoDataOutputQueue = dispatch_queue_create("videoDataOutputQueue", DISPATCH_QUEUE_SERIAL);
             [videoDataOutput setSampleBufferDelegate:self queue:videoDataOutputQueue];
-            // ??? dispatch_release(videoDataOutputQueue);
 
             /////////////////////////////////////////////////////////////
             // OUTPUT #1: Still Image
@@ -282,20 +338,18 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
             // We retain a handle to the still image output and use this when we capture an image.
             self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
-// https://developer.apple.com/library/ios/samplecode/SquareCam/Listings/SquareCam_SquareCamViewController_m.html#//apple_ref/doc/uid/DTS40011190-SquareCam_SquareCamViewController_m-DontLinkElementID_7
+            // https://developer.apple.com/library/ios/samplecode/SquareCam/Listings/SquareCam_SquareCamViewController_m.html#//apple_ref/doc/uid/DTS40011190-SquareCam_SquareCamViewController_m-DontLinkElementID_7
             // see KVO note above
             [self.stillImageOutput addObserver:self forKeyPath:@"capturingStillImage" options:NSKeyValueObservingOptionNew context:AVCaptureStillImageIsCapturingStillImageContext];
 
 
-          //  NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys: AVVideoCodecJPEG, AVVideoCodecKey, nil];
-          //  [self.stillImageOutput setOutputSettings:outputSettings];
+            NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys: AVVideoCodecJPEG, AVVideoCodecKey, nil];
+            [self.stillImageOutput setOutputSettings:outputSettings];
 
             [self.captureSession addInput:input];
-
             [self.captureSession addOutput:self.stillImageOutput];
             
-            //[outputSettings release];
-
+            [outputSettings release];
 
 
             // we want BGRA, both CoreGraphics and OpenGL work well with 'BGRA'
@@ -306,163 +360,32 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
 
            
 
-            videoDataOutput.minFrameDuration = CMTimeMake(1, 10);
+            // # commenting out to see if we need to do this : (maybe for older devices) 
+            // videoDataOutput.minFrameDuration = CMTimeMake(1, 10);
 
  
             [self.captureSession addOutput:videoDataOutput];
 
             [[videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
 
-
-
-/*
- 
-    From : https://developer.apple.com/library/ios/samplecode/SquareCam/Listings/SquareCam_SquareCamViewController_m.html#//apple_ref/doc/uid/DTS40011190-SquareCam_SquareCamViewController_m-DontLinkElementID_7
- 
-    // create a serial dispatch queue used for the sample buffer delegate as well as when a still image is captured
-    // a serial dispatch queue must be used to guarantee that video frames will be delivered in order
-    // see the header doc for setSampleBufferDelegate:queue: for more information
-
-    videoDataOutputQueue = dispatch_queue_create("VideoDataOutputQueue", DISPATCH_QUEUE_SERIAL);
-    [videoDataOutput setSampleBufferDelegate:self queue:videoDataOutputQueue];
-    
-    if ( [session canAddOutput:videoDataOutput] )
-        [session addOutput:videoDataOutput];
-    [[videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
-    
-    effectiveScale = 1.0;
-    previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:session];
-    [previewLayer setBackgroundColor:[[UIColor blackColor] CGColor]];
-    [previewLayer setVideoGravity:AVLayerVideoGravityResizeAspect];
-    CALayer *rootLayer = [previewView layer];
-    [rootLayer setMasksToBounds:YES];
-    [previewLayer setFrame:[rootLayer bounds]];
-    [rootLayer addSublayer:previewLayer];
-    [session startRunning]; 
-
-*/
-
-
-
-
+            // and off we go! ... 
             [self.captureSession startRunning];
 
-bail:
-    [self.captureSession release];
-    if (error) {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Failed with error %d", (int)[error code]]
-                                                            message:[error localizedDescription]
-                                                           delegate:nil 
-                                                  cancelButtonTitle:@"Dismiss" 
-                                                  otherButtonTitles:nil];
-        [alertView show];
-        [alertView release];
-        [self teardownAVCapture];
-    }
+            // uh oh ... 
+            bail:
+                [self.captureSession release];
+                if (error) {
+                    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Failed with error %d", (int)[error code]]
+                                                                        message:[error localizedDescription]
+                                                                       delegate:nil 
+                                                              cancelButtonTitle:@"oh dear" 
+                                                              otherButtonTitles:nil];
+                    [alertView show];
+                    [alertView release];
+                    [self teardownAVCapture];
+                }
 
 
-            /*
-            /////////////////////////////////////////////////////////////////////////////
-            // Create a preview layer that has a capture session attached to it.
-            // Stick this preview layer into our UIView.
-            /////////////////////////////////////////////////////////////////////////////
-            self.captureSession = [[AVCaptureSession alloc] init];
-            self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;
-
-
-                    
-            self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
-            self.prevLayer.frame = square.bounds;
-            //self.prevLayer.transform = CATransform3DRotate(CATransform3DIdentity, M_PI/2.0f, 0, 0, 1);
-            self.prevLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-            [square.layer addSublayer:self.prevLayer];
-
-
-
-            
-            self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-            
-            // set the flash off 
-            // lock it 
-            if([self.captureDevice lockForConfiguration:true]){
-                // set it
-                [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
-                self.flashOn = NO;  
-                // unlock it 
-                [self.captureDevice lockForConfiguration:false];
-            };
-            
-            NSError *error = nil;
-            AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureDevice error:&error];
-            if (!input) {
-                // Handle the error appropriately.
-            }
-            [self.captureSession addInput:input];
-
-            
-            self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-            
-            if([self.captureDevice lockForConfiguration:true]){
-                [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
-                self.flashOn = NO;  
-                [self.captureDevice lockForConfiguration:false];
-            };
-            
-            NSError *error = nil;
-            AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureDevice error:&error];
-            if (!input) {
-                // Handle the error appropriately.
-            }
-            [self.captureSession addInput:input];
-
->>>>>>> 2c4df9552805c087595c2867f4194b5f6f31e2a5
-            
-            /////////////////////////////////////////////////////////////
-            // OUTPUT #1: Still Image
-            /////////////////////////////////////////////////////////////
-            // Add an output object to our session so we can get a still image
-            // We retain a handle to the still image output and use this when we capture an image.
-            self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
-
-            NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys: AVVideoCodecJPEG, AVVideoCodecKey, nil];
-            [self.stillImageOutput setOutputSettings:outputSettings];
-            [self.captureSession addOutput:self.stillImageOutput];
-            
-            
-            /////////////////////////////////////////////////////////////
-            // OUTPUT #2: Video Frames
-            /////////////////////////////////////////////////////////////
-            // Create Video Frame Outlet that will send each frame to our delegate
-            AVCaptureVideoDataOutput *captureOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
-            captureOutput.alwaysDiscardsLateVideoFrames = YES; 
-            
-            // We need to create a queue to funnel the frames to our delegate
-
-            dispatch_queue_t queue = dispatch_queue_create("cameraQueue", NULL);
-            dispatch_set_context(queue, self);
-
-            // a warning is happening here for some reason...  
-            [captureOutput setSampleBufferDelegate:self queue:queue];
-
-            dispatch_release(queue);
-            
-            // Set the video output to store frame in BGRA (It is supposed to be faster)
-            NSString* key = (NSString*)kCVPixelBufferPixelFormatTypeKey; 
-            // let's try some different keys, 
-            NSNumber* value = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA]; 
-            
-            NSDictionary* videoSettings = [NSDictionary dictionaryWithObject:value forKey:key]; 
-            [captureOutput setVideoSettings:videoSettings];    
-            
-            [self.captureSession addOutput:captureOutput]; 
-            /////////////////////////////////////////////////////////////
-            
-            
-            // start the capture session
-            [self.captureSession startRunning];
-
-
-            */
             
         } else {
             // If camera is NOT avaialble
@@ -505,7 +428,7 @@ bail:
 
             [self addSubview:flashView];
             // fade it in            
-            [UIView animateWithDuration:.4f
+            [UIView animateWithDuration:.3f
                              animations:^{
                                  [flashView setAlpha:1.f];
                              }
@@ -513,7 +436,7 @@ bail:
         }
         else {
             // fade it out
-            [UIView animateWithDuration:.4f
+            [UIView animateWithDuration:.3f
                             animations:^{
                                 [flashView setAlpha:0.f];
                             }
