@@ -6,7 +6,7 @@
  *  original author : Mike Fogg  : blirpit : 2013 
  * 
  *  modifications / attempts to fix / general fist thumping : Kosso : August 2013
- * 
+ * .
  */
 
 #import "TiUIView.h"

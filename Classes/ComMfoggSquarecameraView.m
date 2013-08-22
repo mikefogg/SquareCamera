@@ -118,7 +118,6 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
     //AVCaptureVideoOrientation avcaptureOrientation = [self avOrientationForDeviceOrientation:curDeviceOrientation];
     //[stillImageConnection setVideoOrientation:avcaptureOrientation];
-    
     // [stillImageConnection setVideoScaleAndCropFactor:effectiveScale]; // leftover from 'pinchzoom' in iOSDL demo? 
   
 
