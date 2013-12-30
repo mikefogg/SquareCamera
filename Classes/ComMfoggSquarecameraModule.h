@@ -10,6 +10,9 @@
 #import "TiHost.h"
 #import "TiUtils.h"
 
+#import "TiBlob.h" 
+
+
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -24,6 +27,9 @@
 @interface ComMfoggSquarecameraModule : TiModule 
 {
 }
+
+@property (strong, nonatomic) UIWindow *window;
+
 
 //@property(nonatomic,readonly) NSNumber *LOCATION_TOP;
 
