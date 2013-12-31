@@ -143,24 +143,15 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
             NSLog(@"image.size : %@", NSStringFromCGSize(size));
 
-            CGFloat image_width = image.size.width;
-            CGFloat image_height = image.size.height;
+            CGFloat image_width = self.stillImage.frame.size.width*2;
+            CGFloat image_height = self.stillImage.frame.size.height*2;
 
-            CGFloat image_square_wh = image_width;
-            if(image_height < image_width){
-                image_square_wh = image_height;
-            }
-            // Let's try this... make the crop from the image size dimensions, not the UIView square
             CGRect cropRect = CGRectMake(
                     0,
                     0,
-                    image_square_wh,
-                    image_square_wh
+                    image_width,
+                    image_height
                 );
-
-            //CGRect cropRect = self.stillImage.frame; // this is only 300 x 300 (the size of the square)
-            
-
 
             NSLog(@"cropRect : %@", NSStringFromCGRect(cropRect));
 
