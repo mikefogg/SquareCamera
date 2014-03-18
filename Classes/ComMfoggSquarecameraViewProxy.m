@@ -7,27 +7,20 @@
 
 #import "ComMfoggSquarecameraViewProxy.h"
 #import "ComMfoggSquarecameraView.h"
+#import "TiUtils.h"
 
 @implementation ComMfoggSquarecameraViewProxy
 
--(void)takePhoto:(id)args
-{
-	[[self view] performSelectorOnMainThread:@selector(takePhoto:) withObject:args waitUntilDone:NO];
-}
+  #ifndef USE_VIEW_FOR_UI_METHOD
+    #define USE_VIEW_FOR_UI_METHOD(methodname)\
+    -(void)methodname:(id)args\
+    {\
+      [self makeViewPerformSelector:@selector(methodname:) withObject:args createIfNeeded:YES waitUntilDone:NO];\
+    }
+  #endif
 
--(void)turnFlashOn:(id)args
-{
-	[[self view] performSelectorOnMainThread:@selector(turnFlashOn:) withObject:args waitUntilDone:NO];
-}
-
--(void)turnFlashOff:(id)args
-{
-	[[self view] performSelectorOnMainThread:@selector(turnFlashOff:) withObject:args waitUntilDone:NO];
-}
-
--(void)switchCamera:(id)args
-{
-	[[self view] performSelectorOnMainThread:@selector(switchCamera:) withObject:args waitUntilDone:NO];
-}
+USE_VIEW_FOR_UI_METHOD(takePhoto);
+USE_VIEW_FOR_UI_METHOD(turnFlashOn);
+USE_VIEW_FOR_UI_METHOD(turnFlashOff);
 
 @end

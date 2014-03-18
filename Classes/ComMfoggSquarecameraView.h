@@ -34,35 +34,17 @@
     dispatch_queue_t videoDataOutputQueue;
 }
 
-
-
 @property (nonatomic, strong) AVCaptureSession *captureSession;
-
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *prevLayer;
-
 @property (nonatomic, assign) AVCaptureVideoOrientation *orientation;
-
 @property (nonatomic,retain) AVCaptureDeviceInput *videoInput;
 @property (nonatomic,retain) AVCaptureDeviceInput *audioInput;
-
-@property(nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
-
-@property(nonatomic, retain) AVCaptureVideoDataOutput *videoDataOutput;
-
-
-
-
-@property(nonatomic, retain) UIImageView *stillImage;
-
-@property(nonatomic, retain) AVCaptureDevice *captureDevice;
-
-
- 
-
-
-@property(nonatomic) Boolean flashOn;
-
-@property(nonatomic) Boolean isUsingFrontFacingCamera;
+@property (nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
+@property (nonatomic, retain) AVCaptureVideoDataOutput *videoDataOutput;
+@property (nonatomic, retain) UIImageView *stillImage;
+@property (nonatomic, retain) AVCaptureDevice *captureDevice;
+@property (nonatomic, retain) NSString *camera;
+@property (nonatomic) Boolean flashOn;
 
 @end
 
