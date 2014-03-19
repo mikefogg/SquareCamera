@@ -153,7 +153,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
           UIImage *croppedImage = UIGraphicsGetImageFromCurrentImageContext();  
           UIGraphicsEndImageContext();          
           
-          TiBlob *imageBlob = [[TiBlob alloc] initWithImage:croppedImage]; // maybe try image here 
+          TiBlob *imageBlob = [[TiBlob alloc] initWithImage:[self flipImage:croppedImage]]; // maybe try image here 
           NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
 																self.camera, @"camera",
 																imageBlob, @"media",
@@ -163,6 +163,17 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
           [self.proxy fireEvent:@"success" withObject:event];
 
         }];
+}
+
+-(UIImage *)flipImage:(UIImage *)img
+{
+	UIImage* flippedImage = img;
+
+	if([self.camera isEqualToString: @"front"]){
+  	flippedImage = [UIImage imageWithCGImage:img.CGImage scale:img.scale orientation:(img.imageOrientation + 4) % 8];
+  };
+
+  return flippedImage;
 }
 
 -(void)setCamera_:(id)value
