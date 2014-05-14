@@ -218,12 +218,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		if ([d position] == desiredPosition) {
 			[[self.prevLayer session] beginConfiguration];
 
-			AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
+            self.videoInput = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
 
 			for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
 				[[self.prevLayer session] removeInput:oldInput];
 			}
-			[[self.prevLayer session] addInput:input];
+			[[self.prevLayer session] addInput:self.videoInput];
 			[[self.prevLayer session] commitConfiguration];
 			break;
 		}
@@ -274,12 +274,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 			NSError *error = nil;
 			
-			AVCaptureVideoDataOutput *videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
-            [videoDataOutput setAlwaysDiscardsLateVideoFrames:YES]; // discard if the data output queue is blocked (as we process the still image)
+			self.videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
+            [self.videoDataOutput setAlwaysDiscardsLateVideoFrames:YES]; // discard if the data output queue is blocked (as we process the still image)
 
             // Now do the dispatch queue .. 
             videoDataOutputQueue = dispatch_queue_create("videoDataOutputQueue", DISPATCH_QUEUE_SERIAL);
-            [videoDataOutput setSampleBufferDelegate:self queue:videoDataOutputQueue];
+            [self.videoDataOutput setSampleBufferDelegate:self queue:videoDataOutputQueue];
 
             self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
@@ -295,11 +295,11 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
             NSDictionary *rgbOutputSettings = [NSDictionary dictionaryWithObject:
             	[NSNumber numberWithInt:kCMPixelFormat_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey];
 
-            [videoDataOutput setVideoSettings:rgbOutputSettings];
+            [self.videoDataOutput setVideoSettings:rgbOutputSettings];
 
-            [self.captureSession addOutput:videoDataOutput];
+            [self.captureSession addOutput:self.videoDataOutput];
 
-            [[videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
+            [[self.videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
 
             // and off we go! ... 
             [self.captureSession startRunning];
@@ -329,21 +329,24 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       }
 
 
-      - (void)teardownAVCapture
-      {
+- (void)teardownAVCapture
+{
 
-      	NSLog(@"[INFO] TEAR DOWN CAPTURE");
+    NSLog(@"[INFO] TEAR DOWN CAPTURE");
 
-      	[self.captureSession stopRunning];
+    [self.captureSession removeInput:self.videoInput];
+    [self.captureSession removeOutput:self.videoDataOutput];
 
-      	[_videoDataOutput release];
-      	if (videoDataOutputQueue)
-      		dispatch_release(videoDataOutputQueue);
-      	[self.stillImageOutput removeObserver:self forKeyPath:@"capturingStillImage"];
-      	[self.stillImageOutput release];
-      	[self.prevLayer removeFromSuperlayer];
-      	[self.prevLayer release];
-      }
+    [self.captureSession stopRunning];
+
+    [_videoDataOutput release];
+    if (videoDataOutputQueue)
+    	dispatch_release(videoDataOutputQueue);
+    [self.stillImageOutput removeObserver:self forKeyPath:@"capturingStillImage"];
+    [self.stillImageOutput release];
+    [self.prevLayer removeFromSuperlayer];
+    [self.prevLayer release];
+}
 
 // perform a flash bulb animation using KVO to monitor the value of the capturingStillImage property of the AVCaptureStillImageOutput class
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
