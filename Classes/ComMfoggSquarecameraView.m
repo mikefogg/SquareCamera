@@ -51,22 +51,26 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 - (void)turnFlashOn:(id)args
 {
 	if([self.captureDevice lockForConfiguration:true]){
-		[self.captureDevice setFlashMode:AVCaptureFlashModeOn];
-		self.flashOn = YES;  
-		[self.captureDevice lockForConfiguration:false];
-
-		[self.proxy fireEvent:@"onFlashOn"];
-	};
+        if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOn]){
+            [self.captureDevice setFlashMode:AVCaptureFlashModeOn];
+            self.flashOn = YES;
+            [self.captureDevice lockForConfiguration:false];
+            
+            [self.proxy fireEvent:@"onFlashOn"];
+        };
+    };
 };
 
 - (void)turnFlashOff:(id)args
 {
 	if([self.captureDevice lockForConfiguration:true]){
-		[self.captureDevice setFlashMode:AVCaptureFlashModeOff];
-		self.flashOn = NO;  
-		[self.captureDevice lockForConfiguration:false];
+        if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOn]){
+            [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
+            self.flashOn = NO;  
+            [self.captureDevice lockForConfiguration:false];
 
-		[self.proxy fireEvent:@"onFlashOff"];
+            [self.proxy fireEvent:@"onFlashOff"];
+        };
 	};
 };
 
@@ -254,8 +258,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 			self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
 
 			if([self.captureDevice lockForConfiguration:true]){
-				[self.captureDevice setFlashMode:AVCaptureFlashModeOff];
-				self.flashOn = NO;  
+                
+                if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOff]){
+                    [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
+                    self.flashOn = NO;
+                };
+                
 				[self.captureDevice lockForConfiguration:false];
 			};
 
