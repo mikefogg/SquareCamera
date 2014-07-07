@@ -197,12 +197,27 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 -(void)setCaptureDevice
 {
-	AVCaptureDevicePosition desiredPosition;	
+	AVCaptureDevicePosition desiredPosition;
+	
+    for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
+		if ([d position] == desiredPosition) {
+			[[self.prevLayer session] beginConfiguration];
+            
+            self.videoInput = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
+            
+			for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
+				[[self.prevLayer session] removeInput:oldInput];
+			}
+			[[self.prevLayer session] addInput:self.videoInput];
+			[[self.prevLayer session] commitConfiguration];
+			break;
+		}
+	};
 	
 	if ([self.camera isEqualToString: @"back"]){
 		desiredPosition = AVCaptureDevicePositionBack;
 
-		if( &AVCaptureSessionPreset1920x1080 != NULL && [self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES )
+		if([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES)
 		{
 			self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
 		} else {
@@ -213,22 +228,6 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		desiredPosition = AVCaptureDevicePositionFront;
 		self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
 	};
-
-	for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
-		if ([d position] == desiredPosition) {
-			[[self.prevLayer session] beginConfiguration];
-
-            self.videoInput = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
-
-			for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
-				[[self.prevLayer session] removeInput:oldInput];
-			}
-			[[self.prevLayer session] addInput:self.videoInput];
-			[[self.prevLayer session] commitConfiguration];
-			break;
-		}
-	};
-
 }
 
 -(UIView*)square
@@ -246,15 +245,6 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
             // If camera is avaialble
 
 			self.captureSession = [[AVCaptureSession alloc] init];
-
-            // Go for higher resolution
-			if( &AVCaptureSessionPreset1920x1080 != NULL && [self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES )
-			{
-				self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
-                //self.currentPreset = GMCVideoCaptureRecordingPresetFullHD;
-			} else {
-				self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-			}
 
 			self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
 			self.prevLayer.frame = self.square.bounds;

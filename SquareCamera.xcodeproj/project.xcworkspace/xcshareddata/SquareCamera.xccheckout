@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>097B2CDC-C548-479D-9230-98B5E872D50D</string>
+	<key>IDESourceControlProjectName</key>
+	<string>SquareCamera</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>F01E3639-8854-48B1-95E7-9E58B6FA72E2</key>
+		<string>ssh://github.com/mikefogg/SquareCamera.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>SquareCamera.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>F01E3639-8854-48B1-95E7-9E58B6FA72E2</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/mikefogg/SquareCamera.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>F01E3639-8854-48B1-95E7-9E58B6FA72E2</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>F01E3639-8854-48B1-95E7-9E58B6FA72E2</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SquareCamera</string>
+		</dict>
+	</array>
+</dict>
+</plist>
