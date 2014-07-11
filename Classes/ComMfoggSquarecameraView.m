@@ -232,6 +232,21 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		desiredPosition = AVCaptureDevicePositionFront;
 		self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
 	};
+    
+    for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
+		if ([d position] == desiredPosition) {
+			[[self.prevLayer session] beginConfiguration];
+            
+			AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
+            
+			for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
+				[[self.prevLayer session] removeInput:oldInput];
+			}
+			[[self.prevLayer session] addInput:input];
+			[[self.prevLayer session] commitConfiguration];
+			break;
+		};
+	};
 }
 
 -(UIView*)square
