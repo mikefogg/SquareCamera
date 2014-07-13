@@ -199,24 +199,49 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 	}
 }
 
+-(void)pause:(id)args
+{
+    if(self.captureSession){
+        if([self.captureSession isRunning]){
+            [self.captureSession stopRunning];
+            
+            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   @"paused", @"state",
+                                   nil];
+            
+            [self.proxy fireEvent:@"stateChange" withObject:event];
+
+        } else {
+            NSLog(@"[ERROR] Attempted to pause an already paused session... ignoring.");
+        };
+    } else {
+        NSLog(@"[ERROR] Attempted to pause the camera before it was started... ignoring.");
+    };
+};
+
+-(void)resume:(id)args
+{
+    if(self.captureSession){
+        if(![self.captureSession isRunning]){
+            [self.captureSession startRunning];
+            
+            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   @"resumed", @"state",
+                                   nil];
+            
+            [self.proxy fireEvent:@"stateChange" withObject:event];
+
+        } else {
+            NSLog(@"[ERROR] Attempted to resume an already running session... ignoring.");
+        };
+    } else {
+        NSLog(@"[ERROR] Attempted to resume the camera before it was started... ignoring.");
+    };
+};
+
 -(void)setCaptureDevice
 {
 	AVCaptureDevicePosition desiredPosition;
-	
-    for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
-		if ([d position] == desiredPosition) {
-			[[self.prevLayer session] beginConfiguration];
-            
-            self.videoInput = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
-            
-			for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
-				[[self.prevLayer session] removeInput:oldInput];
-			}
-			[[self.prevLayer session] addInput:self.videoInput];
-			[[self.prevLayer session] commitConfiguration];
-			break;
-		}
-	};
 	
 	if ([self.camera isEqualToString: @"back"]){
 		desiredPosition = AVCaptureDevicePositionBack;
@@ -261,7 +286,6 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 		[self addSubview:self.stillImage];
 
 		if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-            // If camera is avaialble
 
 			self.captureSession = [[AVCaptureSession alloc] init];
 
@@ -316,6 +340,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
             // and off we go! ... 
             [self.captureSession startRunning];
+            
+            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   @"started", @"state",
+                                   nil];
+            
+            [self.proxy fireEvent:@"stateChange" withObject:event];
 
             // uh oh ... 
             bail:
@@ -342,6 +372,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       }
 
 
+
 - (void)teardownAVCapture
 {
 
@@ -351,6 +382,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     [self.captureSession removeOutput:self.videoDataOutput];
 
     [self.captureSession stopRunning];
+    
+    NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                           @"stopped", @"state",
+                           nil];
+    
+    [self.proxy fireEvent:@"stateChange" withObject:event];
 
     [_videoDataOutput release];
     if (videoDataOutputQueue)
