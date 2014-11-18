@@ -253,36 +253,36 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 -(void)setCaptureDevice
 {
-  AVCaptureDevicePosition desiredPosition;
+    AVCaptureDevicePosition desiredPosition;
+    
+    if ([self.camera isEqualToString: @"back"]) {
+        desiredPosition = AVCaptureDevicePositionBack;
+        
+        if ([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES) {
+            self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
+        } else {
+            self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+        };
+        
+    } else {
+        desiredPosition = AVCaptureDevicePositionFront;
+        self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+    };
 
-  for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
-      if ([d position] == desiredPosition) {
-          [[self.prevLayer session] beginConfiguration];
+    for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
+        if ([d position] == desiredPosition) {
+            [[self.prevLayer session] beginConfiguration];
 
-          AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
+            AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
 
-          for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
+            for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
               [[self.prevLayer session] removeInput:oldInput];
-          }
-          [[self.prevLayer session] addInput:input];
-          [[self.prevLayer session] commitConfiguration];
-          break;
-      };
-  };
-
-  if ([self.camera isEqualToString: @"back"]) {
-      desiredPosition = AVCaptureDevicePositionBack;
-
-      if ([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES) {
-          self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
-      } else {
-          self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-      }
-
-  } else {
-      desiredPosition = AVCaptureDevicePositionFront;
-      self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-  };
+            }
+            [[self.prevLayer session] addInput:input];
+            [[self.prevLayer session] commitConfiguration];
+            break;
+        };
+    };
 };
 
 -(UIView*)square
