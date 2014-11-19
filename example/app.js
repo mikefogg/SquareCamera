@@ -17,6 +17,8 @@ var camera_view = SquareCamera.createView({
   top: 0,
   height: 320,
   width: 320,
+  frontQuality: SquareCamera.QUALITY_HIGH,
+  backQuality: SquareCamera.QUALITY_HD,
   backgroundColor: "#fff",
   camera: "front" // Set the view to open with the front camera
 });
