@@ -50,6 +50,8 @@ var camera_view = SquareCamera.createView({
   height: 320,
   width: 320,
   backgroundColor: "#fff",
+  frontQuality: SquareCamera.QUALITY_HIGH, // Optional Defaults to QUALITY_HIGH
+  backQuality: SquareCamera.QUALITY_HD, // Optional Defaults to QUALITY_HD
   camera: "back" // Optional "back" or "front"
 });
 
@@ -73,6 +75,18 @@ win.open();
 
 </code></pre>
 * __NOTE:__ The created view (ex. 'camera_view' above) can have other views added on top of it to act as a camera overlay (exactly how you would a standard Ti.UI.view)
+
+<h2>Camera Quality</h2>
+
+You are now able to change the quality when initializing the camera by setting frontQuality and backQuality parameters.
+
+<pre><code>
+SquareCamera.QUALITY_LOW // AVCaptureSessionPresetLow
+SquareCamera.QUALITY_MEDIUM // AVCaptureSessionPresetMedium
+SquareCamera.QUALITY_HIGH // AVCaptureSessionPresetHigh
+SquareCamera.QUALITY_HD // AVCaptureSessionPreset1920x1080 (Note: back camera only)
+
+</code></pre>
 
 <h2>Functions</h2>
 
