@@ -3,6 +3,7 @@
 
 // Modifications / Attempts to fix using ramdom bit of code found here and there : Kosso : August 2013
 
+#import "ComMfoggSquarecameraModule.h"
 #import "ComMfoggSquarecameraView.h"
 #import "ComMfoggSquarecameraViewProxy.h"
 #import <AVFoundation/AVFoundation.h>
@@ -40,6 +41,8 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
   // Set defaults
   self.camera = @"back"; // Default camera is 'back'
+  self.frontQuality = AVCaptureSessionPresetHigh; // Default front quality is high
+  self.backQuality = AVCaptureSessionPreset1920x1080; // Default back quality is HD
 };
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -211,6 +214,38 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   }
 };
 
+-(void)setFrontQuality_:(id)value
+{
+    self.frontQuality = [self qualityFromValue:value];
+};
+
+-(void)setBackQuality_:(id)value
+{
+    self.backQuality = [self qualityFromValue:value];
+};
+
+-(NSString *)qualityFromValue:(id)value
+{
+    switch ([value integerValue])
+    {
+        case LOW_QUALITY:
+            return AVCaptureSessionPresetLow;
+            break;
+        case MEDIUM_QUALITY:
+            return AVCaptureSessionPresetMedium;
+            break;
+        case HIGH_QUALITY:
+            return AVCaptureSessionPresetHigh;
+            break;
+        case HD_QUALITY:
+            return AVCaptureSessionPreset1920x1080;
+            break;
+        default:
+            return AVCaptureSessionPresetHigh;
+            break;
+    }
+}
+
 -(void)pause:(id)args
 {
     if(self.captureSession){
@@ -254,39 +289,51 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 -(void)setCaptureDevice
 {
     AVCaptureDevicePosition desiredPosition;
+    NSString *quality;
     
     if ([self.camera isEqualToString: @"back"]) {
         desiredPosition = AVCaptureDevicePositionBack;
-        
-        if ([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080] == YES) {
-            self.captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;
-        } else {
-            self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-        };
-        
+        quality = self.backQuality;
     } else {
         desiredPosition = AVCaptureDevicePositionFront;
-        self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+        quality = self.frontQuality;
     };
 
     for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
         if ([d position] == desiredPosition) {
-            [[self.prevLayer session] beginConfiguration];
+            [self.captureSession beginConfiguration];
 
             AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:d error:nil];
 
-            for (AVCaptureInput *oldInput in [[self.prevLayer session] inputs]) {
-              [[self.prevLayer session] removeInput:oldInput];
-            }
-            [[self.prevLayer session] addInput:input];
-            [[self.prevLayer session] commitConfiguration];
+            for (AVCaptureInput *oldInput in [self.captureSession inputs]) {
+              [self.captureSession removeInput:oldInput];
+            };
+            
+            // Reset to high before changing incase the new camera cannot handle an already specified preset
+            [self.captureSession setSessionPreset:AVCaptureSessionPresetMedium];
+
+            [self.captureSession addInput:input];
+            [self.captureSession commitConfiguration];
+            
+            // Now set it to the new session preset
+            if ([self.captureSession canSetSessionPreset:quality] == YES) {
+                // If you can set to this quality, do it!
+                NSLog(@"[INFO] Setting camera quality to: %@", quality);
+                self.captureSession.sessionPreset = quality;
+                
+            } else {
+                // If not... fallback to high quality
+                NSLog(@"[WARN]: Can not use camera quality '%@'. Defaulting to High.", quality);
+                self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+            };
+            
             break;
         };
     };
 };
 
 -(UIView*)square
-{   
+{
   if (square == nil) {
 
     square = [[UIView alloc] initWithFrame:[self frame]];

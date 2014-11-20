@@ -45,6 +45,8 @@
 @property (nonatomic, retain) AVCaptureDevice *captureDevice;
 @property (nonatomic, retain) NSString *camera;
 @property (nonatomic) Boolean flashOn;
+@property (nonatomic, retain) NSString *frontQuality;
+@property (nonatomic, retain) NSString *backQuality;
 
 @end
 

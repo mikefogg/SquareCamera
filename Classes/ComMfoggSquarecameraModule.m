@@ -23,6 +23,12 @@
 	return @"com.mfogg.squarecamera";
 }
 
+/* Add some quality constants */
+MAKE_SYSTEM_PROP(QUALITY_HD, HD_QUALITY);
+MAKE_SYSTEM_PROP(QUALITY_HIGH, HIGH_QUALITY);
+MAKE_SYSTEM_PROP(QUALITY_MEDIUM, MEDIUM_QUALITY);
+MAKE_SYSTEM_PROP(QUALITY_LOW, LOW_QUALITY);
+
 #pragma mark Lifecycle
 
 -(void)startup

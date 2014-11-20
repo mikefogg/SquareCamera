@@ -24,13 +24,18 @@
 #import <ImageIO/ImageIO.h>
 #import <ImageIO/CGImageProperties.h>
 
+NS_ENUM(NSInteger, AVSessionPresetType)
+{
+    LOW_QUALITY = 0,
+    MEDIUM_QUALITY = 1,
+    HIGH_QUALITY = 2,
+    HD_QUALITY = 3
+};
+
 @interface ComMfoggSquarecameraModule : TiModule 
 {
 }
 
 @property (strong, nonatomic) UIWindow *window;
-
-
-//@property(nonatomic,readonly) NSNumber *LOCATION_TOP;
 
 @end
