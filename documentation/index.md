@@ -17,14 +17,15 @@ I have wanted (multiple times now) the option of being able to customize the cam
 <h3>iOS Versions</h3>
   - 6.0+ (up to the latest iOS 8)
 
-  * __NOTE:__ I have not tested against iOS8 Beta yet but will be doing that in the coming months (but feel free to try it and let me know :) ) 
-
 <h3>Titanium SDK Versions</h3>
   - 3.2.0
   - 3.2.1
   - 3.2.3
   - 3.3.X
   - 3.4.0
+  - 3.4.0
+  - 3.4.1
+  - 3.4.2
 
   * __Note:__ I am sure it works on many more versions than this, but these are just the one's I've used
 
