@@ -27,42 +27,27 @@
 #import <ImageIO/ImageIO.h>
 #import <ImageIO/CGImageProperties.h>
 
-@interface ComMfoggSquarecameraView : TiUIView <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ComMfoggSquarecameraView : TiUIView <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 {
     UIView *square;
     UIView *flashView;
     dispatch_queue_t videoDataOutputQueue;
 }
 
-
-
 @property (nonatomic, strong) AVCaptureSession *captureSession;
-
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *prevLayer;
-
 @property (nonatomic, assign) AVCaptureVideoOrientation *orientation;
-
 @property (nonatomic,retain) AVCaptureDeviceInput *videoInput;
 @property (nonatomic,retain) AVCaptureDeviceInput *audioInput;
-
-@property(nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
-
-@property(nonatomic, retain) AVCaptureVideoDataOutput *videoDataOutput;
-
-
-
-
-@property(nonatomic, retain) UIImageView *stillImage;
-
-@property(nonatomic, retain) AVCaptureDevice *captureDevice;
-
-
- 
-
-
-@property(nonatomic) Boolean flashOn;
-
-@property(nonatomic) Boolean isUsingFrontFacingCamera;
+@property (nonatomic, retain) AVCaptureStillImageOutput *stillImageOutput;
+@property (nonatomic, retain) AVCaptureVideoDataOutput *videoDataOutput;
+@property (nonatomic, retain) UIImageView *stillImage;
+@property (nonatomic, retain) AVCaptureDevice *captureDevice;
+@property (nonatomic, retain) NSString *camera;
+@property (nonatomic) Boolean flashOn;
+@property (nonatomic, assign) BOOL detectCodes;
+@property (nonatomic, retain) NSString *frontQuality;
+@property (nonatomic, retain) NSString *backQuality;
 
 @end
 
