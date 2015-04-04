@@ -553,8 +553,8 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   {
     AVMetadataMachineReadableCodeObject *readableObject = (AVMetadataMachineReadableCodeObject *)metadataObject;
     
-    NSLog(@"[INFO] Code value :  = %@", readableObject.stringValue);
-    NSLog(@"[INFO] Code type :  = %@", metadataObject.type);
+    // NSLog(@"[INFO] Code value :  = %@", readableObject.stringValue);
+    // NSLog(@"[INFO] Code type :  = %@", metadataObject.type);
 
     NSString *code_type = @"";
 
