@@ -29,6 +29,7 @@
 		F73DE200176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = F73DE1FC176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.h */; };
 		F73DE201176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = F73DE1FD176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.m */; };
 		F74BA96C1762B37D004CE26C /* ComMfoggSquarecameraView.m in Sources */ = {isa = PBXBuildFile; fileRef = F74BA96B1762B37D004CE26C /* ComMfoggSquarecameraView.m */; };
+		F76BF9AE1BCFEA6700B2CB79 /* GPUImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F76BF9AD1BCFEA6600B2CB79 /* GPUImage.framework */; };
 		F7A21889176278B400BE60E9 /* ComMfoggSquarecameraModule.h in Headers */ = {isa = PBXBuildFile; fileRef = F7A21887176278B400BE60E9 /* ComMfoggSquarecameraModule.h */; };
 		F7A2188A176278B400BE60E9 /* ComMfoggSquarecameraModule.m in Sources */ = {isa = PBXBuildFile; fileRef = F7A21888176278B400BE60E9 /* ComMfoggSquarecameraModule.m */; };
 		F7A218931762834800BE60E9 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7A2188B1762834800BE60E9 /* CoreGraphics.framework */; };
@@ -61,6 +62,7 @@
 		F73DE1FC176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ComMfoggSquarecameraViewProxy.h; path = Classes/ComMfoggSquarecameraViewProxy.h; sourceTree = "<group>"; };
 		F73DE1FD176295D800CF9F6E /* ComMfoggSquarecameraViewProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ComMfoggSquarecameraViewProxy.m; path = Classes/ComMfoggSquarecameraViewProxy.m; sourceTree = "<group>"; };
 		F74BA96B1762B37D004CE26C /* ComMfoggSquarecameraView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ComMfoggSquarecameraView.m; path = Classes/ComMfoggSquarecameraView.m; sourceTree = "<group>"; };
+		F76BF9AD1BCFEA6600B2CB79 /* GPUImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GPUImage.framework; path = ../GPUImage/framework/build/Debug/GPUImage.framework; sourceTree = "<group>"; };
 		F7A21887176278B400BE60E9 /* ComMfoggSquarecameraModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ComMfoggSquarecameraModule.h; path = Classes/ComMfoggSquarecameraModule.h; sourceTree = "<group>"; };
 		F7A21888176278B400BE60E9 /* ComMfoggSquarecameraModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ComMfoggSquarecameraModule.m; path = Classes/ComMfoggSquarecameraModule.m; sourceTree = "<group>"; };
 		F7A2188B1762834800BE60E9 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CoreGraphics.framework; sourceTree = "<group>"; };
@@ -78,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F76BF9AE1BCFEA6700B2CB79 /* GPUImage.framework in Frameworks */,
 				F7A218931762834800BE60E9 /* CoreGraphics.framework in Frameworks */,
 				F7A218941762834800BE60E9 /* UIKit.framework in Frameworks */,
 				F7A218951762834800BE60E9 /* Foundation.framework in Frameworks */,
@@ -114,6 +117,7 @@
 		0867D69AFE84028FC02AAC07 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F76BF9AD1BCFEA6600B2CB79 /* GPUImage.framework */,
 				F7A2188B1762834800BE60E9 /* CoreGraphics.framework */,
 				F7A2188C1762834800BE60E9 /* UIKit.framework */,
 				F7A2188D1762834800BE60E9 /* Foundation.framework */,
@@ -262,7 +266,8 @@
 				DSTROOT = /tmp/ComMfoggSquarecamera.dst;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)\"",
+					"$(SRCROOT)",
+					/Users/mfogg/Sites/GPUImage/framework/build/Debug,
 				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -303,7 +308,8 @@
 				DSTROOT = /tmp/ComMfoggSquarecamera.dst;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)\"",
+					"$(SRCROOT)",
+					/Users/mfogg/Sites/GPUImage/framework/build/Debug,
 				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_MODEL_TUNING = G5;

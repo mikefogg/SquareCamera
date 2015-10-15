@@ -10,7 +10,7 @@
 //
 // How to add a Framework (example)
 //
- OTHER_LDFLAGS=$(inherited) -framework AVFoundation -framework AudioToolbox -framework CoreGraphics -framework UIKit -framework Foundation -framework CoreVideo -framework CoreMedia -framework QuartzCore -framework ImageIO
+ OTHER_LDFLAGS=$(inherited) -framework AVFoundation -framework AudioToolbox -framework CoreGraphics -framework UIKit -framework Foundation -framework CoreVideo -framework CoreMedia -framework QuartzCore -framework ImageIO -framework GPUImage
 //
 // Adding a framework for a specific version(s) of iPhone:
 //
