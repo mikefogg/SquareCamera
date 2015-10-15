@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 0.7
+version: 0.7.1
 description: SquareCamera - Titanium Module using AVFoundation for the camera. Kosso - Now with optional 2d code detection.
 author: Mike Fogg - Modifications - Kosso
 license: MIT

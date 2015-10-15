@@ -9,7 +9,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
 <h2>Supports</h2>
 
 <h3>Devices</h3>
-  - iPhone (Tested with 3G, 3GS, 4, 4s, 5, 5c and 5s, and 6)
+  - iPhone (Tested with 3G, 3GS, 4, 4s, 5, 5c and 5s, 6, and 6s)
   - iPad (Tested with multiple iPads)
   - iPod Touch
 
@@ -26,6 +26,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
   - 3.4.1
   - 3.4.2
   - 3.5.0.GA
+  - 5.0.0.GA
 
   * __Note:__ I am sure it works on many more versions than this, but these are just the one's I've used
 

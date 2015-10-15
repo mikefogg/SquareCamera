@@ -1,10 +1,10 @@
 /*
 *
-* SquareCamera Titanium Module. 
-* 
+* SquareCamera Titanium Module.
+*
 * Original Author : Mike Fogg : github.com/mikefogg : June 2013
-* 
-*/ 
+*
+*/
 
 
 var SquareCamera = require('com.mfogg.squarecamera');
@@ -20,7 +20,17 @@ var camera_view = SquareCamera.createView({
   frontQuality: SquareCamera.QUALITY_HIGH,
   backQuality: SquareCamera.QUALITY_HD,
   backgroundColor: "#fff",
+  detectCodes:true, // Available since v 0.7
   camera: "front" // Set the view to open with the front camera
+});
+
+var label_message = Ti.UI.createLabel({
+    height:Ti.UI.SIZE,
+    left:10,
+    right:10,
+    text:'No Code',
+    font:{fontSize:10,fontFamily:'Helvetica Neue'},
+    bottom: 100
 });
 
 var image_preview = Ti.UI.createImageView({
@@ -36,12 +46,12 @@ var image_preview = Ti.UI.createImageView({
 
 // Event that listens for the flash to turn on
 camera_view.addEventListener("onFlashOn", function(e){
-  alert("Flash Turned On");
+  flash.title = "Flash On";
 });
 
 // Event that listens for the flash to turn off
 camera_view.addEventListener("onFlashOff", function(e){
-  alert("Flash Turned Off");
+  flash.title = "Flash Off";
 });
 
 // Event that listens for the camera to switch
@@ -49,7 +59,7 @@ camera_view.addEventListener("onCameraChange", function(e){
   // New e.camera actually returns one of:
   //   "front" : using the front camera
   //   "back" : using the back camera
-  
+
   Ti.API.info("Now using the "+e.camera+" camera"); // See what camera we're now using
 });
 
@@ -71,10 +81,15 @@ camera_view.addEventListener("stateChange", function(e){
   //   "stopped" : The camera has been stopped (and is being torn down)
   //   "paused" : You've paused the camera
   //   "resumed" : You've resumed the camera after pausing
-  
+
   // e.state = The new state of the camera (one of the above options)
-  
+
   Ti.API.info("Camera state changed to "+e.state);
+});
+
+// Since 0.7 : 2d code detection. Requires detectCodes:true on the camera view.
+camera_view.addEventListener("code", function(e){
+  label_message.text = e.codeType+' : '+e.value;
 });
 
 // Take Photo Button
@@ -87,6 +102,7 @@ var take_photo = Ti.UI.createView({
   borderRadius:30
 });
 
+win.add(label_message);
 win.add(image_preview);
 
 take_photo.addEventListener("click", function(e){
@@ -107,7 +123,7 @@ var flash = Ti.UI.createButton({
   width:90,
   height:40,
   color:'#444',
-  title:'flash',
+  title:'Flash Off',
   font:{fontSize:12,fontFamily:'Helvetica Neue'},
   backgroundColor:'#aca476',
   backgroundSelectedColor:'#aca476',
