@@ -327,6 +327,8 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
                 self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
             };
             
+            [d addObserver:self forKeyPath:@"adjustingExposure" options:NSKeyValueObservingOptionNew context:nil];
+            
             break;
         };
     };
@@ -396,6 +398,9 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
       [[self.videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
 
+      UIGestureRecognizer* gr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapGesture:)];
+      [self.square addGestureRecognizer:gr];
+        
       // and off we go! ...
       if(![self.captureSession isRunning]){
           [self.captureSession startRunning];
@@ -418,7 +423,43 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   return square;
 };
 
+- (void)setPoint:(CGPoint)p
+{
+    CGSize viewSize = self.square.bounds.size;
+    CGPoint pointOfInterest = CGPointMake(p.y / viewSize.height,
+                                          1.0 - p.x / viewSize.width);
+    
+    AVCaptureDevice* videoCaptureDevice =
+    [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    
+    NSError* error = nil;
+    if ([videoCaptureDevice lockForConfiguration:&error]) {
+        
+        if ([videoCaptureDevice isFocusPointOfInterestSupported] &&
+            [videoCaptureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+            videoCaptureDevice.focusPointOfInterest = pointOfInterest;
+            videoCaptureDevice.focusMode = AVCaptureFocusModeAutoFocus;
+        }
+        
+        if ([videoCaptureDevice isExposurePointOfInterestSupported] &&
+            [videoCaptureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]){
+            self.adjustingExposure = YES;
+            videoCaptureDevice.exposurePointOfInterest = pointOfInterest;
+            videoCaptureDevice.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
+        }
+        
+        [videoCaptureDevice unlockForConfiguration];
+    } else {
+        NSLog(@"%s|[ERROR] %@", __PRETTY_FUNCTION__, error);
+    }
+    
+}
 
+- (void)didTapGesture:(UITapGestureRecognizer*)tgr
+{
+    CGPoint p = [tgr locationInView:tgr.view];
+    [self setPoint:p];
+}
 
 - (void)teardownAVCapture
 {
@@ -479,7 +520,25 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
         ];
     }
   }
+
+  if ([keyPath isEqual:@"adjustingExposure"]) {
+    if (!self.adjustingExposure) {
+      return;
+    }
+    if ([[change objectForKey:NSKeyValueChangeNewKey] boolValue] == NO) {
+      self.adjustingExposure = NO;
+      AVCaptureDevice* videoCaptureDevice =
+      [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+      NSError *error = nil;
+      if ([videoCaptureDevice lockForConfiguration:&error]) {
+        [videoCaptureDevice setExposureMode:AVCaptureExposureModeLocked];
+        [videoCaptureDevice unlockForConfiguration];
+      }
+    }
+  }
+
 };
+
 
 // utility routing used during image capture to set up capture orientation
 - (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
