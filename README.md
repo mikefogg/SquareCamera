@@ -1,5 +1,4 @@
 Appcelerator Titanium :: SquareCamera
-=============
 
 An Appcelerator Titanium module that uses AVFoundation to allow for a much more customizable camera.
 
@@ -16,6 +15,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
 
 <h3>iOS Versions</h3>
   - 6.0+ (up to the latest iOS 8)
+  - [7.0+ for 2d code detection in module version 0.7]
 
 <h3>Titanium SDK Versions</h3>
   - 3.2.0
@@ -25,6 +25,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
   - 3.4.0
   - 3.4.1
   - 3.4.2
+  - 3.5.0.GA
 
   * __Note:__ I am sure it works on many more versions than this, but these are just the one's I've used
 
@@ -49,10 +50,19 @@ var camera_view = SquareCamera.createView({
   top: 0,
   height: 320,
   width: 320,
+  detectCodes:true, // Since version 0.7 : optional boolean to activate 2d code detection. Dection fires "code" event contaning e.codeType and e.value -All codes types are supported
   backgroundColor: "#fff",
   frontQuality: SquareCamera.QUALITY_HIGH, // Optional Defaults to QUALITY_HIGH
   backQuality: SquareCamera.QUALITY_HD, // Optional Defaults to QUALITY_HD
   camera: "back" // Optional "back" or "front"
+});
+
+var label_message = Ti.UI.createLabel({
+    height:Ti.UI.SIZE,
+    left:10,
+    right:10,
+    text:'ready',
+    top:330,
 });
 
 var image_preview = Ti.UI.createImageView({
@@ -70,6 +80,13 @@ camera_view.addEventListener("success", function(e){
 });
 
 win.add(cameraView);
+// Since 0.7 : 2d code detection. Requires detectCodes:true on the camera view.
+camera_view.addEventListener("code", function(e){
+  label_message.text = e.codeType+' : '+e.value;
+});
+
+win.add(cameraView);
+win.add(label_message);
 win.add(image_preview);
 win.open();
 
@@ -165,7 +182,7 @@ camera_view.addEventListener("onCameraChange", function(e){
   // e.camera returns one of:
   //   "front" : using the front camera
   //   "back" : using the back camera
-  
+
   Ti.API.info("Now using the "+e.camera+" camera"); // See what camera we're now using
 });
 
@@ -183,10 +200,44 @@ camera_view.addEventListener("stateChange", function(e){
   //   "stopped" : The camera has been stopped (and is being torn down)
   //   "paused" : You've paused the camera
   //   "resumed" : You've resumed the camera after pausing
-  
+
   // e.state = The new state of the camera (one of the above options)
-  
+
   Ti.API.info("Camera state changed to "+e.state);
+});
+
+</code></pre>
+
+<h3>"code"</h3>
+
+Since 0.7. Fires when detectCodes:true
+
+<pre><code>
+camera_view.addEventListener("code", function(e){
+  // returns :
+  //   e.value : The value.
+  //   e.codeType : The 2D Code Type
+  /*
+  Available Code Types:
+   UPCECode
+   Code39Code
+   Code39Mod43Code
+   EAN13Code
+   EAN8Code
+   Code93Code
+   Code128Code
+   PDF417Code
+   QRCode
+   AztecCode
+   Interleaved2of5Code
+   ITF14Code
+   DataMatrixCode
+  */
+
+  // TODO: set code types option on creation.
+
+  Ti.API.info("2D code detected : "+e.codeType+' : '+e.value);
+
 });
 
 </code></pre>
@@ -207,3 +258,4 @@ Do whatever you want, however you want, whenever you want. And if you find a pro
 <h4>Contributors (TONS of thanks!)</h4>
 @Kosso
 @reymundolopez
+@yuhsak

@@ -1,10 +1,10 @@
 /**
  *  SquareCamera Titanium Module
- *  
+ *
  *  learning/tests/dev/etc...
- * 
- *  original author : Mike Fogg  : blirpit : 2013 
- * 
+ *
+ *  original author : Mike Fogg  : blirpit : 2013
+ *
  *  modifications / attempts to fix / general fist thumping : Kosso : August 2013
  * .
  */
@@ -27,7 +27,7 @@
 #import <ImageIO/ImageIO.h>
 #import <ImageIO/CGImageProperties.h>
 
-@interface ComMfoggSquarecameraView : TiUIView <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ComMfoggSquarecameraView : TiUIView <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 {
     UIView *square;
     UIView *flashView;
@@ -45,9 +45,9 @@
 @property (nonatomic, retain) AVCaptureDevice *captureDevice;
 @property (nonatomic, retain) NSString *camera;
 @property (nonatomic) Boolean flashOn;
+@property (nonatomic) BOOL adjustingExposure;
+@property (nonatomic, assign) BOOL detectCodes;
 @property (nonatomic, retain) NSString *frontQuality;
 @property (nonatomic, retain) NSString *backQuality;
-@property (nonatomic) BOOL adjustingExposure;
 
 @end
-
