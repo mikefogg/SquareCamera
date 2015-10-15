@@ -3,6 +3,8 @@
 
 // Modifications / Attempts to fix using ramdom bit of code found here and there : Kosso : August 2013
 
+// April 4 2015 : Kosso added built-in 2D QR/barcode detection option. Set dectectCodes:true|false when creating the camera view.
+
 #import "ComMfoggSquarecameraModule.h"
 #import "ComMfoggSquarecameraView.h"
 #import "ComMfoggSquarecameraViewProxy.h"
@@ -53,12 +55,13 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     if(self.captureSession){
         if(![self.captureSession isRunning]){
             [self.captureSession startRunning];
-            
-            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   @"resumed", @"state",
-                                   nil];
-            
-            [self.proxy fireEvent:@"stateChange" withObject:event];
+
+            if([self.proxy _hasListeners:@"stateChange"]){
+              NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                     @"resumed", @"state",
+                                     nil];
+              [self.proxy fireEvent:@"stateChange" withObject:event];
+            }
         };
     };
 };
@@ -67,11 +70,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 {
   if([self.captureDevice lockForConfiguration:true]){
         if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOn]){
-            [self.captureDevice setFlashMode:AVCaptureFlashModeOn];
+            [self.captureDevice setTorchMode:AVCaptureTorchModeOn];
             self.flashOn = YES;
             [self.captureDevice lockForConfiguration:false];
-            
-            [self.proxy fireEvent:@"onFlashOn"];
+            if([self.proxy _hasListeners:@"onFlashOn"]){
+              [self.proxy fireEvent:@"onFlashOn"];
+            }
         };
     };
 };
@@ -80,11 +84,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 {
   if([self.captureDevice lockForConfiguration:true]){
         if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOn]){
-            [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
-            self.flashOn = NO;  
+            [self.captureDevice setTorchMode:AVCaptureTorchModeOff];
+            self.flashOn = NO;
             [self.captureDevice lockForConfiguration:false];
-
-            [self.proxy fireEvent:@"onFlashOff"];
+            if([self.proxy _hasListeners:@"onFlashOff"]){
+              [self.proxy fireEvent:@"onFlashOff"];
+            }
         };
   };
 };
@@ -95,8 +100,8 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   dispatch_async(dispatch_get_main_queue(), ^(void) {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@ (%d)", message, (int)[error code]]
       message:[error localizedDescription]
-      delegate:nil 
-      cancelButtonTitle:@"Dismiss" 
+      delegate:nil
+      cancelButtonTitle:@"Dismiss"
       otherButtonTitles:nil];
     [alertView show];
     [alertView release];
@@ -124,20 +129,20 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
 
   [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error)
-  { 
+  {
 
     CFDictionaryRef exifAttachments = CMGetAttachment(imageSampleBuffer, kCGImagePropertyExifDictionary, NULL);
     if (exifAttachments) {
       NSLog(@"[INFO] imageSampleBuffer Exif attachments: %@", exifAttachments);
-    } else { 
+    } else {
       NSLog(@"[INFO] No imageSampleBuffer Exif attachments");
     }
 
-    NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];    
+    NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
 
     UIImage *image = [[UIImage alloc] initWithData:imageData];
 
-    CGSize size = image.size;  // this will be the full size of the screen 
+    CGSize size = image.size;  // this will be the full size of the screen
 
     NSLog(@"image.size : %@", NSStringFromCGSize(size));
 
@@ -159,26 +164,26 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       0,
       ((cropRect.size.width/size.width)*size.height),
       cropRect.size.width);
-    
+
     UIGraphicsBeginImageContext(cropRect.size);
-    CGContextRef context = UIGraphicsGetCurrentContext();  
-    
-    CGContextScaleCTM(context, 1.0, -1.0);  
-    CGContextRotateCTM(context, -M_PI/2);  
-    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextRotateCTM(context, -M_PI/2);
+
     CGContextDrawImage(context, customImageRect,
       image.CGImage);
-    
-    UIImage *croppedImage = UIGraphicsGetImageFromCurrentImageContext();  
-    UIGraphicsEndImageContext();          
-    
-    TiBlob *imageBlob = [[TiBlob alloc] initWithImage:[self flipImage:croppedImage]]; // maybe try image here 
+
+    UIImage *croppedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+
+    TiBlob *imageBlob = [[TiBlob alloc] initWithImage:[self flipImage:croppedImage]]; // maybe try image here
     NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
                           self.camera, @"camera",
                           imageBlob, @"media",
                           nil];
-    
-    // HURRAH! 
+
+    // HURRAH!
     [self.proxy fireEvent:@"success" withObject:event];
 
     }];
@@ -209,8 +214,9 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
       self.camera, @"camera",
       nil];
-
-    [self.proxy fireEvent:@"onCameraChange" withObject:event];
+    if([self.proxy _hasListeners:@"onCameraChange"]){
+      [self.proxy fireEvent:@"onCameraChange" withObject:event];
+    }
   }
 };
 
@@ -251,13 +257,13 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     if(self.captureSession){
         if([self.captureSession isRunning]){
             [self.captureSession stopRunning];
-            
-            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   @"paused", @"state",
-                                   nil];
-            
-            [self.proxy fireEvent:@"stateChange" withObject:event];
+            if([self.proxy _hasListeners:@"stateChange"]){
+              NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                     @"paused", @"state",
+                                     nil];
 
+              [self.proxy fireEvent:@"stateChange" withObject:event];
+            }
         } else {
             NSLog(@"[ERROR] Attempted to pause an already paused session... ignoring.");
         };
@@ -271,13 +277,14 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     if(self.captureSession){
         if(![self.captureSession isRunning]){
             [self.captureSession startRunning];
-            
-            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   @"resumed", @"state",
-                                   nil];
-            
-            [self.proxy fireEvent:@"stateChange" withObject:event];
 
+            if([self.proxy _hasListeners:@"stateChange"]){
+              NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                     @"resumed", @"state",
+                                     nil];
+
+              [self.proxy fireEvent:@"stateChange" withObject:event];
+            }
         } else {
             NSLog(@"[ERROR] Attempted to resume an already running session... ignoring.");
         };
@@ -290,7 +297,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 {
     AVCaptureDevicePosition desiredPosition;
     NSString *quality;
-    
+
     if ([self.camera isEqualToString: @"back"]) {
         desiredPosition = AVCaptureDevicePositionBack;
         quality = self.backQuality;
@@ -308,27 +315,28 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
             for (AVCaptureInput *oldInput in [self.captureSession inputs]) {
               [self.captureSession removeInput:oldInput];
             };
-            
+
             // Reset to high before changing incase the new camera cannot handle an already specified preset
             [self.captureSession setSessionPreset:AVCaptureSessionPresetMedium];
 
             [self.captureSession addInput:input];
+
             [self.captureSession commitConfiguration];
-            
+
             // Now set it to the new session preset
             if ([self.captureSession canSetSessionPreset:quality] == YES) {
                 // If you can set to this quality, do it!
                 NSLog(@"[INFO] Setting camera quality to: %@", quality);
                 self.captureSession.sessionPreset = quality;
-                
+
             } else {
                 // If not... fallback to high quality
                 NSLog(@"[WARN]: Can not use camera quality '%@'. Defaulting to High.", quality);
                 self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
             };
-            
+
             [d addObserver:self forKeyPath:@"adjustingExposure" options:NSKeyValueObservingOptionNew context:nil];
-            
+
             break;
         };
     };
@@ -339,7 +347,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   if (square == nil) {
 
     square = [[UIView alloc] initWithFrame:[self frame]];
-    [self addSubview:square]; 
+    [self addSubview:square];
 
     self.stillImage = [[UIImageView alloc] init];
     self.stillImage.frame = [square bounds];
@@ -357,12 +365,12 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       self.captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
 
       if([self.captureDevice lockForConfiguration:true]){
-                
+
                 if([self.captureDevice isFlashModeSupported:AVCaptureFlashModeOff]){
                     [self.captureDevice setFlashMode:AVCaptureFlashModeOff];
                     self.flashOn = NO;
                 };
-                
+
         [self.captureDevice lockForConfiguration:false];
       };
 
@@ -370,12 +378,13 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       [self setCaptureDevice];
 
       NSError *error = nil;
-      
+
       self.videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
       [self.videoDataOutput setAlwaysDiscardsLateVideoFrames:YES]; // discard if the data output queue is blocked (as we process the still image)
 
-      // Now do the dispatch queue .. 
+      // Now do the dispatch queue ..
       videoDataOutputQueue = dispatch_queue_create("videoDataOutputQueue", DISPATCH_QUEUE_SERIAL);
+
       [self.videoDataOutput setSampleBufferDelegate:self queue:videoDataOutputQueue];
 
       self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
@@ -386,7 +395,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       [self.stillImageOutput setOutputSettings:outputSettings];
 
       [self.captureSession addOutput:self.stillImageOutput];
-      
+
       [outputSettings release];
 
       NSDictionary *rgbOutputSettings = [NSDictionary dictionaryWithObject:
@@ -396,28 +405,59 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
       [self.captureSession addOutput:self.videoDataOutput];
 
+      if(self.detectCodes){
+
+        // Kosso : Add built-in 2d code detection. Requires iOS 7+
+        AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
+        [self.captureSession addOutput:metadataOutput];
+        [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
+        // Available types : https://developer.apple.com/library/prerelease/ios/documentation/AVFoundation/Reference/AVMetadataMachineReadableCodeObject_Class/index.html#//apple_ref/doc/constant_group/Machine_Readable_Object_Types
+        /*
+           NSString *const AVMetadataObjectTypeUPCECode;
+           NSString *const AVMetadataObjectTypeCode39Code;
+           NSString *const AVMetadataObjectTypeCode39Mod43Code;
+           NSString *const AVMetadataObjectTypeEAN13Code;
+           NSString *const AVMetadataObjectTypeEAN8Code;
+           NSString *const AVMetadataObjectTypeCode93Code;
+           NSString *const AVMetadataObjectTypeCode128Code;
+           NSString *const AVMetadataObjectTypePDF417Code;
+           NSString *const AVMetadataObjectTypeQRCode;
+           NSString *const AVMetadataObjectTypeAztecCode;
+           NSString *const AVMetadataObjectTypeInterleaved2of5Code;
+           NSString *const AVMetadataObjectTypeITF14Code;
+           NSString *const AVMetadataObjectTypeDataMatrixCode;
+
+          AVMetadataObjectTypeUPCECode, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeCode39Mod43Code, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode93Code, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypePDF417Code, AVMetadataObjectTypeQRCode, AVMetadataObjectTypeAztecCode, AVMetadataObjectTypeInterleaved2of5Code, AVMetadataObjectTypeITF14Code, AVMetadataObjectTypeDataMatrixCode
+
+        */
+
+        [metadataOutput setMetadataObjectTypes:@[AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode39Mod43Code, AVMetadataObjectTypeUPCECode, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeQRCode, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeDataMatrixCode, AVMetadataObjectTypeAztecCode]];
+      }
+
       [[self.videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
 
       UIGestureRecognizer* gr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapGesture:)];
       [self.square addGestureRecognizer:gr];
-        
+
       // and off we go! ...
       if(![self.captureSession isRunning]){
           [self.captureSession startRunning];
-          
-          NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                           @"started", @"state",
-                           nil];
-          
-          [self.proxy fireEvent:@"stateChange" withObject:event];
+
+          if([self.proxy _hasListeners:@"stateChange"]){
+            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                             @"started", @"state",
+                             nil];
+
+            [self.proxy fireEvent:@"stateChange" withObject:event];
+          }
       } else {
           NSLog(@"[INFO] Attempted to start a session that's already running... ignoring.");
       };
-      
+
     } else {
       // If camera is NOT avaialble
       [self.proxy fireEvent:@"noCamera"];
-    };        
+    };
   };
 
   return square;
@@ -428,31 +468,31 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     CGSize viewSize = self.square.bounds.size;
     CGPoint pointOfInterest = CGPointMake(p.y / viewSize.height,
                                           1.0 - p.x / viewSize.width);
-    
+
     AVCaptureDevice* videoCaptureDevice =
     [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    
+
     NSError* error = nil;
     if ([videoCaptureDevice lockForConfiguration:&error]) {
-        
+
         if ([videoCaptureDevice isFocusPointOfInterestSupported] &&
             [videoCaptureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
             videoCaptureDevice.focusPointOfInterest = pointOfInterest;
             videoCaptureDevice.focusMode = AVCaptureFocusModeAutoFocus;
         }
-        
+
         if ([videoCaptureDevice isExposurePointOfInterestSupported] &&
             [videoCaptureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]){
             self.adjustingExposure = YES;
             videoCaptureDevice.exposurePointOfInterest = pointOfInterest;
             videoCaptureDevice.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
         }
-        
+
         [videoCaptureDevice unlockForConfiguration];
     } else {
         NSLog(@"%s|[ERROR] %@", __PRETTY_FUNCTION__, error);
     }
-    
+
 }
 
 - (void)didTapGesture:(UITapGestureRecognizer*)tgr
@@ -464,17 +504,20 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 - (void)teardownAVCapture
 {
 
-    NSLog(@"[INFO] TEAR DOWN CAPTURE");
+    // NSLog(@"[INFO] TEAR DOWN CAPTURE");
+
+    [self.captureSession removeInput:self.videoInput];
+    [self.captureSession removeOutput:self.videoDataOutput];
 
     [self.captureSession removeInput:self.videoInput];
     [self.captureSession removeOutput:self.videoDataOutput];
 
     [self.captureSession stopRunning];
-    
+
     NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
                            @"stopped", @"state",
                            nil];
-    
+
     [self.proxy fireEvent:@"stateChange" withObject:event];
 
     [_videoDataOutput release];
@@ -498,7 +541,7 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       [flashView setAlpha:0.f];
 
       [self addSubview:flashView];
-      // fade it in            
+      // fade it in
       [UIView animateWithDuration:.3f
         animations:^{
           [flashView setAlpha:1.f];
@@ -536,9 +579,17 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       }
     }
   }
-
 };
 
+-(void)setDetectCodes_:(id)arg
+{
+  self.detectCodes = [TiUtils boolValue:arg def:NO];
+}
+
+
+-(BOOL) detectCodes {
+  return _detectCodes;
+}
 
 // utility routing used during image capture to set up capture orientation
 - (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
@@ -550,5 +601,78 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     result = AVCaptureVideoOrientationLandscapeLeft;
   return result;
 };
+
+#pragma mark AVCaptureMetadataOutputObjectsDelegate
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
+{
+
+  for(AVMetadataObject *metadataObject in metadataObjects)
+  {
+    AVMetadataMachineReadableCodeObject *readableObject = (AVMetadataMachineReadableCodeObject *)metadataObject;
+
+    // NSLog(@"[INFO] Code value :  = %@", readableObject.stringValue);
+    // NSLog(@"[INFO] Code type :  = %@", metadataObject.type);
+
+    NSString *code_type = @"";
+
+    if([metadataObject.type isEqualToString:AVMetadataObjectTypeQRCode])
+    {
+      code_type = @"QRCode";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeEAN13Code])
+    {
+      code_type = @"EAN13Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeCode39Code])
+    {
+      code_type = @"Code39Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeCode39Mod43Code])
+    {
+      code_type = @"Code39Mod43Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeEAN8Code])
+    {
+      code_type = @"EAN8Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeCode93Code])
+    {
+      code_type = @"Code93Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeCode128Code])
+    {
+      code_type = @"Code128Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypePDF417Code])
+    {
+      code_type = @"PDF417Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeAztecCode])
+    {
+      code_type = @"AztecCode";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeInterleaved2of5Code])
+    {
+      code_type = @"Interleaved2of5Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeITF14Code])
+    {
+      code_type = @"ITF14Code";
+    }
+    else if ([metadataObject.type isEqualToString:AVMetadataObjectTypeDataMatrixCode])
+    {
+      code_type = @"DataMatrixCode";
+    }
+
+    if([self.proxy _hasListeners:@"code"]){
+      NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                                     readableObject.stringValue, @"value",
+                                     code_type, @"codeType",
+                                     nil];
+      [self.proxy fireEvent:@"code" withObject:event];
+    }
+  }
+}
 
 @end
