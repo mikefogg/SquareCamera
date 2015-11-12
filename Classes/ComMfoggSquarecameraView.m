@@ -28,8 +28,6 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
   self.captureDevice = nil;
 
   RELEASE_TO_NIL(square);
-
-  [super dealloc];
 };
 
 -(void)initializeState
