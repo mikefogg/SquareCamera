@@ -47,6 +47,7 @@
 @property (nonatomic) Boolean flashOn;
 @property (nonatomic) BOOL adjustingExposure;
 @property (nonatomic, assign) BOOL detectCodes;
+@property (nonatomic, assign) BOOL forceHorizontal;
 @property (nonatomic, retain) NSString *frontQuality;
 @property (nonatomic, retain) NSString *backQuality;
 

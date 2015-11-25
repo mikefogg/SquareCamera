@@ -27,6 +27,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
   - 3.4.2
   - 3.5.0.GA
   - 5.0.0.GA
+  - 5.0.2.GA
 
   * __Note:__ I am sure it works on many more versions than this, but these are just the one's I've used
 
@@ -55,7 +56,8 @@ var camera_view = SquareCamera.createView({
   backgroundColor: "#fff",
   frontQuality: SquareCamera.QUALITY_HIGH, // Optional Defaults to QUALITY_HIGH
   backQuality: SquareCamera.QUALITY_HD, // Optional Defaults to QUALITY_HD
-  camera: "back" // Optional "back" or "front"
+  camera: "back" // Optional "back" or "front",
+  forceHorizontal: true // Optional sets the camera to horizontal mode if you app is horizontal only (Default false)
 });
 
 var label_message = Ti.UI.createLabel({
