@@ -51,7 +51,7 @@ var camera_view = SquareCamera.createView({
   top: 0,
   height: 320,
   width: 320,
-  detectCodes:true, // Since version 0.7 : optional boolean to activate 2d code detection. Dection fires "code" event contaning e.codeType and e.value -All codes types are supported
+  detectCodes:true, // Since version 0.7 : optional boolean to activate 2d code detection. Dection fires "code" event contaning e.codeType and e.value -All codes types are supported. Will not work on iPhone 4 with iOS 7 (crashes upon adding SquareCamera to view).
   backgroundColor: "#fff",
   frontQuality: SquareCamera.QUALITY_HIGH, // Optional Defaults to QUALITY_HIGH
   backQuality: SquareCamera.QUALITY_HD, // Optional Defaults to QUALITY_HD
@@ -213,6 +213,9 @@ camera_view.addEventListener("stateChange", function(e){
 
 Since 0.7. Fires when detectCodes:true
 
+* __Note:__ detectCodes:true crashes iPhone 4 when SquareCamera view is added and made visible
+
+
 <pre><code>
 camera_view.addEventListener("code", function(e){
   // returns :
@@ -246,6 +249,7 @@ camera_view.addEventListener("code", function(e){
 <h2>Known Issues and Future Improvements</h2>
 
 1. Android support
+2. detectCodes:true crashes iPhone 4 when SquareCamera view is added and made visible.  Probably won't be fixed since iPhone 4 no longer getting iOS updates from Apple.
 
 ... anything else :)
 
