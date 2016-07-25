@@ -340,6 +340,8 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     };
 };
 
+
+
 -(UIView*)square
 {
   if (square == nil) {
@@ -356,6 +358,24 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       self.captureSession = [[AVCaptureSession alloc] init];
 
       self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
+      
+      // ------- rotate
+        if(self.forceHorizontal){
+            UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
+            
+            float_t angle=0;
+                angle=-M_PI/2;
+                if ((long)curDeviceOrientation==4){
+                    angle = M_PI/2;
+                }
+        
+            CATransform3D transform =  CATransform3DMakeRotation(angle, 0, 0, 1.0);
+            self.prevLayer.transform =transform;
+            curDeviceOrientation = nil;
+        }
+      // --------
+        
+        
       self.prevLayer.frame = self.square.bounds;
       self.prevLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
       [self.square.layer addSublayer:self.prevLayer];
@@ -587,6 +607,16 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 -(BOOL) detectCodes {
   return _detectCodes;
+}
+
+-(void)setForceHorizontal_:(id)arg
+{
+    self.forceHorizontal = [TiUtils boolValue:arg def:NO];
+}
+
+
+-(BOOL) forceHorizontal {
+    return _forceHorizontal;
 }
 
 // utility routing used during image capture to set up capture orientation
