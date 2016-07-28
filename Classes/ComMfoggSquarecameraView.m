@@ -20,29 +20,50 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
 - (void) dealloc
 {
-  [self teardownAVCapture];
+    [self teardownAVCapture];
 
-  self.prevLayer = nil;
-  self.stillImage = nil;
-  self.stillImageOutput = nil;
-  self.captureDevice = nil;
+    self.prevLayer = nil;
+    self.stillImage = nil;
+    self.stillImageOutput = nil;
+    self.captureDevice = nil;
 
-  RELEASE_TO_NIL(square);
+    RELEASE_TO_NIL(square);
 };
 
 -(void)initializeState
 {
-  [super initializeState];
+    [super initializeState];
 
-  self.prevLayer = nil;
-  self.stillImage = nil;
-  self.stillImageOutput = nil;
-  self.captureDevice = nil;
+    self.prevLayer = nil;
+    self.stillImage = nil;
+    self.stillImageOutput = nil;
+    self.captureDevice = nil;
 
-  // Set defaults
-  self.camera = @"back"; // Default camera is 'back'
-  self.frontQuality = AVCaptureSessionPresetHigh; // Default front quality is high
-  self.backQuality = AVCaptureSessionPreset1920x1080; // Default back quality is HD
+    // Set defaults
+    self.camera = @"back"; // Default camera is 'back'
+    self.frontQuality = AVCaptureSessionPresetHigh; // Default front quality is high
+    self.backQuality = AVCaptureSessionPreset1920x1080; // Default back quality is HD
+    self.scanCropPreview = ([self.proxy valueForKey:@"scanCropPreview"] != nil) ? [[self.proxy valueForKey:@"scanCropPreview"] boolValue] : false;
+    self.scanCrop = ([self.proxy valueForKey:@"scanCrop"] != nil) ? [self.proxy valueForKey:@"scanCrop"] : nil;
+    self.barcodeTypes = ([self.proxy valueForKey:@"barcodeTypes"] != nil) ? [self.proxy valueForKey:@"barcodeTypes"] : @[];
+
+    // Barcode Options
+    self.barcodeDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+         AVMetadataObjectTypeUPCECode, @"UPCE",
+         AVMetadataObjectTypeCode39Code, @"Code39",
+         AVMetadataObjectTypeCode39Mod43Code, @"Code39Mod43",
+         AVMetadataObjectTypeEAN13Code, @"EAN13",
+         AVMetadataObjectTypeEAN8Code, @"EAN8",
+         AVMetadataObjectTypeCode93Code, @"Code93",
+         AVMetadataObjectTypeCode128Code, @"Code128",
+         AVMetadataObjectTypePDF417Code, @"PDF417",
+         AVMetadataObjectTypeQRCode, @"QR",
+         AVMetadataObjectTypeAztecCode, @"Aztec",
+         AVMetadataObjectTypeInterleaved2of5Code, @"Interleaved2of5",
+         AVMetadataObjectTypeITF14Code, @"ITF14",
+         AVMetadataObjectTypeDataMatrixCode, @"DataMatrix",
+         nil];
+
 };
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -326,21 +347,27 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
                 // If you can set to this quality, do it!
                 NSLog(@"[INFO] Setting camera quality to: %@", quality);
                 self.captureSession.sessionPreset = quality;
-
             } else {
                 // If not... fallback to high quality
                 NSLog(@"[WARN]: Can not use camera quality '%@'. Defaulting to High.", quality);
                 self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
             };
-
-            [d addObserver:self forKeyPath:@"adjustingExposure" options:NSKeyValueObservingOptionNew context:nil];
+            
+            // Set the focus to expect a close-range if using barcode scanning
+            if (self.detectCodes && [d isAutoFocusRangeRestrictionSupported]) {
+                NSLog(@"[INFO]: Setting the autofocus range to near!");
+                
+                if ([d lockForConfiguration:nil]) {
+                    d.autoFocusRangeRestriction = AVCaptureAutoFocusRangeRestrictionNear;
+                    d.focusMode = AVCaptureFocusModeContinuousAutoFocus;
+                    [d unlockForConfiguration];
+                }
+            }
 
             break;
         };
     };
 };
-
-
 
 -(UIView*)square
 {
@@ -358,24 +385,24 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
       self.captureSession = [[AVCaptureSession alloc] init];
 
       self.prevLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
-      
+
       // ------- rotate
         if(self.forceHorizontal){
             UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
-            
+
             float_t angle=0;
                 angle=-M_PI/2;
                 if ((long)curDeviceOrientation==4){
                     angle = M_PI/2;
                 }
-        
+
             CATransform3D transform =  CATransform3DMakeRotation(angle, 0, 0, 1.0);
             self.prevLayer.transform =transform;
             curDeviceOrientation = nil;
         }
       // --------
-        
-        
+
+
       self.prevLayer.frame = self.square.bounds;
       self.prevLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
       [self.square.layer addSublayer:self.prevLayer];
@@ -425,31 +452,48 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
       if(self.detectCodes){
 
-        // Kosso : Add built-in 2d code detection. Requires iOS 7+
-        AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
-        [self.captureSession addOutput:metadataOutput];
-        [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
-        // Available types : https://developer.apple.com/library/prerelease/ios/documentation/AVFoundation/Reference/AVMetadataMachineReadableCodeObject_Class/index.html#//apple_ref/doc/constant_group/Machine_Readable_Object_Types
-        /*
-           NSString *const AVMetadataObjectTypeUPCECode;
-           NSString *const AVMetadataObjectTypeCode39Code;
-           NSString *const AVMetadataObjectTypeCode39Mod43Code;
-           NSString *const AVMetadataObjectTypeEAN13Code;
-           NSString *const AVMetadataObjectTypeEAN8Code;
-           NSString *const AVMetadataObjectTypeCode93Code;
-           NSString *const AVMetadataObjectTypeCode128Code;
-           NSString *const AVMetadataObjectTypePDF417Code;
-           NSString *const AVMetadataObjectTypeQRCode;
-           NSString *const AVMetadataObjectTypeAztecCode;
-           NSString *const AVMetadataObjectTypeInterleaved2of5Code;
-           NSString *const AVMetadataObjectTypeITF14Code;
-           NSString *const AVMetadataObjectTypeDataMatrixCode;
+          // Kosso : Add built-in 2d code detection. Requires iOS 7+
+          AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
+          [self.captureSession addOutput:metadataOutput];
+          [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
 
-          AVMetadataObjectTypeUPCECode, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeCode39Mod43Code, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode93Code, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypePDF417Code, AVMetadataObjectTypeQRCode, AVMetadataObjectTypeAztecCode, AVMetadataObjectTypeInterleaved2of5Code, AVMetadataObjectTypeITF14Code, AVMetadataObjectTypeDataMatrixCode
+          if([self.barcodeTypes count] > 0){
+              NSMutableArray *metadataOutputTypes = [NSMutableArray array];
 
-        */
+              for(NSString * barcode in self.barcodeTypes) {
+                  if(barcode != nil){
+                      if([self.barcodeDict objectForKey:barcode] != nil){
+                          NSLog([NSString stringWithFormat:@"Listening for barcode type: %@", barcode]);
+                          [metadataOutputTypes addObject:[self.barcodeDict objectForKey:barcode]];
+                      } else {
+                          NSLog([NSString stringWithFormat:@"Unknown barcode type: %@", barcode]);
+                      }
+                  } else {
+                      NSLog([NSString stringWithFormat:@"barcode is nil :("]);
+                  }
+              }
 
-        [metadataOutput setMetadataObjectTypes:@[AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode39Mod43Code, AVMetadataObjectTypeUPCECode, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeQRCode, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeDataMatrixCode, AVMetadataObjectTypeAztecCode]];
+              // Set these output types only
+              [metadataOutput setMetadataObjectTypes:metadataOutputTypes];
+          } else {
+              // Non set! Add them all :)
+              [metadataOutput setMetadataObjectTypes:@[AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode39Mod43Code, AVMetadataObjectTypeUPCECode, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeQRCode, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeDataMatrixCode, AVMetadataObjectTypeAztecCode]];
+          }
+
+          // Add the scanCrop after you startRunning it
+          if(self.scanCrop){
+              CGRect visibleMetadataOutputRect = [self.prevLayer metadataOutputRectOfInterestForRect:[self formatScanCrop:[self.prevLayer frame]]];
+              metadataOutput.rectOfInterest = visibleMetadataOutputRect;
+
+              // Now should we show you a preview?
+              if(self.scanCropPreview){
+                  UIView* scan_overlay_view = [[UIView alloc]initWithFrame:[self formatScanCrop:[self frame]]];
+                  scan_overlay_view.backgroundColor = [UIColor redColor];
+                  scan_overlay_view.alpha = 0.35;
+
+                  [self addSubview:scan_overlay_view];
+              }
+          }
       }
 
       [[self.videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:NO];
@@ -495,12 +539,14 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 
         if ([videoCaptureDevice isFocusPointOfInterestSupported] &&
             [videoCaptureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+            NSLog(@"[INFO] Tap focus");
             videoCaptureDevice.focusPointOfInterest = pointOfInterest;
             videoCaptureDevice.focusMode = AVCaptureFocusModeAutoFocus;
         }
 
         if ([videoCaptureDevice isExposurePointOfInterestSupported] &&
             [videoCaptureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]){
+            NSLog(@"[INFO] Tap exposure");
             self.adjustingExposure = YES;
             videoCaptureDevice.exposurePointOfInterest = pointOfInterest;
             videoCaptureDevice.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
@@ -510,7 +556,18 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
     } else {
         NSLog(@"%s|[ERROR] %@", __PRETTY_FUNCTION__, error);
     }
+}
 
+-(CGRect)formatScanCrop:(CGRect)frame
+{
+    CGFloat prev_x,prev_y,prev_width,prev_height;
+
+    prev_x = [[self.scanCrop objectForKey:@"x"] floatValue];
+    prev_y = [[self.scanCrop objectForKey:@"y"] floatValue];
+    prev_width = [[self.scanCrop objectForKey:@"width"] floatValue];
+    prev_height = [[self.scanCrop objectForKey:@"height"] floatValue];
+
+    return CGRectMake(prev_x, prev_y, prev_width, prev_height);
 }
 
 - (void)didTapGesture:(UITapGestureRecognizer*)tgr
@@ -550,53 +607,36 @@ static const NSString *AVCaptureStillImageIsCapturingStillImageContext = @"AVCap
 // perform a flash bulb animation using KVO to monitor the value of the capturingStillImage property of the AVCaptureStillImageOutput class
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-  if ( context == AVCaptureStillImageIsCapturingStillImageContext ) {
-    BOOL isCapturingStillImage = [[change objectForKey:NSKeyValueChangeNewKey] boolValue];
-    if ( isCapturingStillImage ) {
-      // do flash bulb like animation
-      flashView = [[UIView alloc] initWithFrame:[self.stillImage frame]];
-      [flashView setBackgroundColor:[UIColor whiteColor]];
-      [flashView setAlpha:0.f];
-
-      [self addSubview:flashView];
-      // fade it in
-      [UIView animateWithDuration:.3f
-        animations:^{
-          [flashView setAlpha:1.f];
-        }
-        ];
-    }
-    else {
-      // fade it out
-      [UIView animateWithDuration:.3f
-        animations:^{
+    if ( context == AVCaptureStillImageIsCapturingStillImageContext ) {
+        BOOL isCapturingStillImage = [[change objectForKey:NSKeyValueChangeNewKey] boolValue];
+        if ( isCapturingStillImage ) {
+          // do flash bulb like animation
+          flashView = [[UIView alloc] initWithFrame:[self.stillImage frame]];
+          [flashView setBackgroundColor:[UIColor whiteColor]];
           [flashView setAlpha:0.f];
-        }
-        completion:^(BOOL finished){
-          // get rid of it
-          [flashView removeFromSuperview];
-          [flashView release];
-          flashView = nil;
-        }
-        ];
-    }
-  }
 
-  if ([keyPath isEqual:@"adjustingExposure"]) {
-    if (!self.adjustingExposure) {
-      return;
+          [self addSubview:flashView];
+          // fade it in
+          [UIView animateWithDuration:.3f
+            animations:^{
+              [flashView setAlpha:1.f];
+            }
+            ];
+        } else {
+          // fade it out
+          [UIView animateWithDuration:.3f
+            animations:^{
+              [flashView setAlpha:0.f];
+            }
+            completion:^(BOOL finished){
+              // get rid of it
+              [flashView removeFromSuperview];
+              [flashView release];
+              flashView = nil;
+            }
+            ];
+        }
     }
-    if ([[change objectForKey:NSKeyValueChangeNewKey] boolValue] == NO) {
-      self.adjustingExposure = NO;
-      AVCaptureDevice* videoCaptureDevice =
-      [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-      NSError *error = nil;
-      if ([videoCaptureDevice lockForConfiguration:&error]) {
-        [videoCaptureDevice setExposureMode:AVCaptureExposureModeLocked];
-        [videoCaptureDevice unlockForConfiguration];
-      }
-    }
-  }
 };
 
 -(void)setDetectCodes_:(id)arg

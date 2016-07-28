@@ -20,8 +20,21 @@ var camera_view = SquareCamera.createView({
   frontQuality: SquareCamera.QUALITY_HIGH,
   backQuality: SquareCamera.QUALITY_HD,
   backgroundColor: "#fff",
-  detectCodes:true, // Available since v 0.7
-  camera: "front" // Set the view to open with the front camera
+  camera: "front", // Set the view to open with the front camera
+  detectCodes: true, // Available since v 0.7
+  scanCrop: { // Available since v 0.8
+    x: ((Ti.Platform.displayCaps.platformWidth-220)/2),
+    y: ((Ti.Platform.displayCaps.platformHeight-220)/2),
+    width: 220,
+    height: 220
+  },
+  scanCropPreview: true, // Available since v 0.8
+  barcodeTypes: [  // Available since v 0.8
+    "UPCE",
+    "UPCA",
+    "EAN13",
+    "CODE128"
+  ]
 });
 
 var label_message = Ti.UI.createLabel({

@@ -44,11 +44,15 @@
 @property (nonatomic, retain) UIImageView *stillImage;
 @property (nonatomic, retain) AVCaptureDevice *captureDevice;
 @property (nonatomic, retain) NSString *camera;
+@property (nonatomic, retain) NSDictionary *barcodeDict;
+@property (nonatomic, retain) NSArray *barcodeTypes;
 @property (nonatomic) Boolean flashOn;
 @property (nonatomic) BOOL adjustingExposure;
 @property (nonatomic, assign) BOOL detectCodes;
 @property (nonatomic, assign) BOOL forceHorizontal;
 @property (nonatomic, retain) NSString *frontQuality;
 @property (nonatomic, retain) NSString *backQuality;
+@property (nonatomic, retain) NSDictionary *scanCrop;
+@property (nonatomic) BOOL scanCropPreview;
 
 @end
