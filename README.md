@@ -133,21 +133,23 @@ scanCrop: {
   width: 220,
   height: 220
 }
+
 </code></pre>
 
 <h4>Make the scanCrop area slightly red for testing/debugging:</h4>
 
 <pre><code>
 scanCropPreview: true
+
 </code></pre>
 
 <h4>Set which types of barcodes you'd like to scan when the view is initialized:</h4>
 
 <pre><code>
-barcodeTypes: {
+barcodeTypes: [
   "UPCE",
   "EAN13"
-}
+]
 
 Available Code Types:
  UPCE
@@ -163,6 +165,7 @@ Available Code Types:
  Interleaved2of5
  ITF14
  DataMatrix
+
 </code></pre>
 
 Note: Apple supports UPC-A by returning EAN13 with a leading zero (see https://developer.apple.com/library/ios/technotes/tn2325/_index.html#//apple_ref/doc/uid/DTS40013824-CH1-IS_UPC_A_SUPPORTED_)
