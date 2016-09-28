@@ -87,6 +87,12 @@ camera_view.addEventListener("stateChange", function(e){
   Ti.API.info("Camera state changed to "+e.state);
 });
 
+camera_view.addEventListener("onZoomFactorChange", function(e){
+  //  e actually returns o:
+  //   "zoomFactorChange" : a float
+  Ti.API.info("ZoomFactor "+JSON.stringify(e)); // See the current zoomFactor
+});
+
 // Since 0.7 : 2d code detection. Requires detectCodes:true on the camera view.
 camera_view.addEventListener("code", function(e){
   label_message.text = e.codeType+' : '+e.value;
