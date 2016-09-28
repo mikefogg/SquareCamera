@@ -3,3 +3,5 @@ bin
 build
 /.DS_Store
 /dist/.DS_Store
+SquareCamera.xcodeproj/project.xcworkspace/xcuserdata
+SquareCamera.xcodeproj/xcuserdata
