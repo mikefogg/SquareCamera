@@ -191,6 +191,21 @@ camera_view.addEventListener("stateChange", function(e){
 
 </code></pre>
 
+<h3>"onZoomFactorChange"</h3>
+
+Will fire when the camera zoomFactor changes
+
+<pre><code>
+// Event that listens for the camera to switch
+camera_view.addEventListener("zoomFactorChange", function(e){
+  // Camera zoom factor change event:
+  //   "zoomFactor" : Current zoom factor
+  
+  Ti.API.info("Camera zoomFactor changed to "+e.zoomFactor);
+});
+
+</code></pre>
+
 <h2>Known Issues and Future Improvements</h2>
 
 1. Android support
