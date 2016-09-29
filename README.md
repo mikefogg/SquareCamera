@@ -27,6 +27,7 @@ I have wanted (multiple times now) the option of being able to customize the cam
   - 3.4.2
   - 3.5.0.GA
   - 5.0.0.GA
+  - 5.0.2.GA
 
   * __Note:__ I am sure it works on many more versions than this, but these are just the one's I've used
 
@@ -51,11 +52,25 @@ var camera_view = SquareCamera.createView({
   top: 0,
   height: 320,
   width: 320,
-  detectCodes:true, // Since version 0.7 : optional boolean to activate 2d code detection. Dection fires "code" event contaning e.codeType and e.value -All codes types are supported
   backgroundColor: "#fff",
   frontQuality: SquareCamera.QUALITY_HIGH, // Optional Defaults to QUALITY_HIGH
   backQuality: SquareCamera.QUALITY_HD, // Optional Defaults to QUALITY_HD
-  camera: "back" // Optional "back" or "front"
+  camera: "back" // Optional "back" or "front",
+  forceHorizontal: true, // Optional sets the camera to horizontal mode if you app is horizontal only (Default false)
+  detectCodes: true, // Since version 0.7 : optional boolean to activate 2d code detection. Dection fires "code" event contaning e.codeType and e.value -All codes types are supported. Will not work on iPhone 4 with iOS 7 (crashes upon adding SquareCamera to view).
+  scanCrop: { // Available since v 0.8
+    x: ((Ti.Platform.displayCaps.platformWidth-220)/2),
+    y: ((Ti.Platform.displayCaps.platformHeight-220)/2),
+    width: 220,
+    height: 220
+  },
+  scanCropPreview: true, // Available since v 0.8
+  barcodeTypes: [  // Available since v 0.8
+    "UPCE",
+    "UPCA",
+    "EAN13",
+    "CODE128"
+  ]
 });
 
 var label_message = Ti.UI.createLabel({
@@ -103,9 +118,57 @@ SquareCamera.QUALITY_LOW // AVCaptureSessionPresetLow
 SquareCamera.QUALITY_MEDIUM // AVCaptureSessionPresetMedium
 SquareCamera.QUALITY_HIGH // AVCaptureSessionPresetHigh
 SquareCamera.QUALITY_HD // AVCaptureSessionPreset1920x1080 (Note: back camera only)
+</code></pre>
+
+<h2>Detect Codes</h2>
+
+As of 0.7 @kosso added the ability to detect barcodes. I've extended this functionality to allow you to:
+
+<h4>Set a certain area of the screen that is able to detect codes using scanCrop:</h4>
+
+<pre><code>
+scanCrop: {
+  x: 0,
+  y: 0,
+  width: 220,
+  height: 220
+}
 
 </code></pre>
 
+<h4>Make the scanCrop area slightly red for testing/debugging:</h4>
+
+<pre><code>
+scanCropPreview: true
+
+</code></pre>
+
+<h4>Set which types of barcodes you'd like to scan when the view is initialized:</h4>
+
+<pre><code>
+barcodeTypes: [
+  "UPCE",
+  "EAN13"
+]
+
+Available Code Types:
+ UPCE
+ Code39
+ Code39Mod43
+ EAN13
+ EAN8
+ Code93
+ Code128
+ PDF417
+ QR
+ Aztec
+ Interleaved2of5
+ ITF14
+ DataMatrix
+
+</code></pre>
+
+Note: Apple supports UPC-A by returning EAN13 with a leading zero (see https://developer.apple.com/library/ios/technotes/tn2325/_index.html#//apple_ref/doc/uid/DTS40013824-CH1-IS_UPC_A_SUPPORTED_)
 
 <h2>Functions</h2>
 
@@ -213,6 +276,8 @@ camera_view.addEventListener("stateChange", function(e){
 
 Since 0.7. Fires when detectCodes:true
 
+* __Note:__ detectCodes:true crashes iPhone 4 when SquareCamera view is added and made visible
+
 <pre><code>
 camera_view.addEventListener("code", function(e){
   // returns :
@@ -235,8 +300,6 @@ camera_view.addEventListener("code", function(e){
    DataMatrixCode
   */
 
-  // TODO: set code types option on creation.
-
   Ti.API.info("2D code detected : "+e.codeType+' : '+e.value);
 
 });
@@ -246,6 +309,7 @@ camera_view.addEventListener("code", function(e){
 <h2>Known Issues and Future Improvements</h2>
 
 1. Android support
+2. detectCodes:true crashes iPhone 4 when SquareCamera view is added and made visible.  Probably won't be fixed since iPhone 4 no longer getting iOS updates from Apple.
 
 ... anything else :)
 
